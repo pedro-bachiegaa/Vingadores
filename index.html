@@ -300,6 +300,7 @@
     <span id="fb-user-label" style="display:none"></span>
     <button id="fb-login-btn"  class="btn fb-btn">☁️ Entrar com Google</button>
     <button id="fb-logout-btn" class="btn fb-btn" style="display:none">Sair</button>
+    <button id="fb-force-sync" class="btn fb-btn" style="display:none;border-color:#F1C40F;color:#F1C40F">⬆ Enviar para nuvem</button>
     <button id="fb-setup-btn"  class="btn fb-btn" title="Configurar Firebase">⚙️ Config</button>
   </div>
 </div>
@@ -631,11 +632,13 @@ function initFirebase(cfg){
       const userLabel = document.getElementById('fb-user-label');
       if(user){
         if(loginBtn)  loginBtn.style.display='none';
+        const syncBtn=document.getElementById('fb-force-sync'); if(syncBtn) syncBtn.style.display='';
         if(logoutBtn) logoutBtn.style.display='';
         if(userLabel){ userLabel.textContent=user.displayName||user.email; userLabel.style.display=''; }
         startFbSync();
       } else {
         if(loginBtn)  loginBtn.style.display='';
+        const syncBtn2=document.getElementById('fb-force-sync'); if(syncBtn2) syncBtn2.style.display='none';
         if(logoutBtn) logoutBtn.style.display='none';
         if(userLabel) userLabel.style.display='none';
         fbSetStatus('⚪','Não conectado — dados locais');
@@ -958,6 +961,21 @@ document.getElementById('fb-config-save').addEventListener('click',()=>{
     initFirebase(cfg);
   } catch(e){ alert('Config inválida: '+e.message); }
 });
+document.getElementById('fb-force-sync').addEventListener('click',()=>{
+  if(!db||!fbUser){ alert('Faça login primeiro'); return; }
+  const localW = JSON.parse(localStorage.getItem(wKey())||'[]');
+  const localE = JSON.parse(localStorage.getItem(eKey())||'{}');
+  fbSetStatus('🟡','Enviando dados locais...');
+  db.collection('mcu_users').doc(fbUser.uid).set({
+    watched:    localW,
+    watchedEps: localE,
+    updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>{
+    fbSetStatus('🟢','Dados enviados para a nuvem ✓');
+    alert('Dados enviados para a nuvem com sucesso!');
+  }).catch(e=>{ fbSetStatus('🔴','Erro: '+e.message); alert('Erro: '+e.message); });
+});
+
 document.getElementById('fb-login-btn').addEventListener('click',()=>{
   if(!fbAuth){ alert('Configure o Firebase primeiro (botão ⚙️ Config)'); return; }
   const provider = new firebase.auth.GoogleAuthProvider();
