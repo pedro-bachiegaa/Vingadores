@@ -947,9 +947,23 @@ document.getElementById('fb-logout-btn').addEventListener('click',()=>{
   if(fbAuth) fbAuth.signOut();
 });
 
-// Auto-init se config já estiver salva
-const _savedCfg = localStorage.getItem('mcu_fb_config');
-if(_savedCfg){ try{ initFirebase(JSON.parse(_savedCfg)); }catch(e){ console.error(e); } }
+// ── Config Firebase embutida ──
+const _FB_CONFIG = {
+  apiKey: "AIzaSyBLdh11JGDaVBRuoB-U-gTJGZybjYnoPq4",
+  authDomain: "doomsday-efc83.firebaseapp.com",
+  projectId: "doomsday-efc83",
+  storageBucket: "doomsday-efc83.firebasestorage.app",
+  messagingSenderId: "11217552927",
+  appId: "1:11217552927:web:15876f5ea005484cb6f72a",
+  measurementId: "G-WL0SP1RN65"
+};
+localStorage.setItem('mcu_fb_config', JSON.stringify(_FB_CONFIG));
+initFirebase(_FB_CONFIG);
+// Esconde botão de config (já está configurado)
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('fb-setup-btn');
+  if(btn) btn.style.display='none';
+});
 
 // ── INIT ──
 switchProfile(currentProfile);
