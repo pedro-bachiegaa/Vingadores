@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCU Dashboard — Rumo ao Doomsday</title>
+<style>
+  :root {
+    --red: #C0392B; --dark-red: #922B21; --gold: #F1C40F;
+    --dark: #0D0D0D; --card-bg: #1A1A1A; --card-border: #2C2C2C;
+    --text: #E8E8E8; --muted: #888;
+    --p1:#E74C3C; --p2:#E67E22; --p3:#2ECC71;
+    --p4:#3498DB; --p5:#9B59B6; --p6:#F1C40F;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--dark); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1a0000 0%, #2d0000 50%, #1a0000 100%);
+    border-bottom: 3px solid var(--red);
+    padding: 20px 28px; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 14px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-area h1 { font-size: 26px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+  .logo-area h1 span { color: var(--red); }
+  .logo-area p { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  .countdown-box {
+    background: linear-gradient(135deg, var(--dark-red), var(--red));
+    border-radius: 12px; padding: 10px 18px; text-align: center; min-width: 270px;
+  }
+  .countdown-box .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+  .countdown-units { display: flex; gap: 6px; justify-content: center; align-items: flex-end; }
+  .cd-unit { display: flex; flex-direction: column; align-items: center; }
+  .cd-unit .val { font-size: 26px; font-weight: 900; color: #fff; min-width: 42px; text-align: center; background: rgba(0,0,0,0.25); border-radius: 6px; padding: 1px 4px; font-variant-numeric: tabular-nums; }
+  .cd-unit .lbl { font-size: 9px; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-top: 3px; }
+  .cd-sep { font-size: 22px; font-weight: 900; color: rgba(255,255,255,0.5); padding-bottom: 4px; line-height: 1.2; }
+  .countdown-box .sub { font-size: 10px; color: rgba(255,255,255,0.75); margin-top: 5px; }
+
+  /* STATS */
+  .stats-bar {
+    background: #111; padding: 14px 28px;
+    display: flex; gap: 28px; flex-wrap: wrap; align-items: center;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .stat { display: flex; flex-direction: column; align-items: center; }
+  .stat .num { font-size: 22px; font-weight: 700; color: var(--gold); }
+  .stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .progress-wrap { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 5px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  .progress-bar-bg { background: #2c2c2c; border-radius: 8px; height: 9px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--red), var(--gold)); transition: width 0.4s ease; }
+
+  /* CONTROLS */
+  .controls {
+    padding: 16px 28px; display: flex; gap: 10px; flex-wrap: wrap;
+    align-items: center; background: #111; border-bottom: 1px solid var(--card-border);
+  }
+  .search-input {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    color: var(--text); padding: 7px 12px; border-radius: 8px;
+    font-size: 13px; min-width: 200px; outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--red); }
+  .filter-group { display: flex; gap: 5px; flex-wrap: wrap; }
+  .btn {
+    padding: 6px 12px; border-radius: 20px; border: 1px solid var(--card-border);
+    background: var(--card-bg); color: var(--muted); font-size: 12px;
+    cursor: pointer; transition: all 0.2s; font-weight: 500; white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--red); color: var(--text); }
+  .btn.active { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn.p1.active{background:var(--p1);border-color:var(--p1);}
+  .btn.p2.active{background:var(--p2);border-color:var(--p2);}
+  .btn.p3.active{background:var(--p3);border-color:var(--p3);}
+  .btn.p4.active{background:var(--p4);border-color:var(--p4);}
+  .btn.p5.active{background:var(--p5);border-color:var(--p5);}
+  .btn.p6.active{background:var(--p6);border-color:var(--p6);color:#000;}
+  .divider { width: 1px; background: var(--card-border); height: 26px; }
+
+  /* MAIN */
+  .main { padding: 22px 28px; }
+  .phase-section { margin-bottom: 36px; }
+  .phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 7px; border-bottom: 2px solid; }
+  .phase-header h2 { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+  .phase-header .ph-count { color: var(--muted); font-size: 12px; }
+  .p-1 .phase-header{border-color:var(--p1);} .p-1 .phase-header h2{color:var(--p1);}
+  .p-2 .phase-header{border-color:var(--p2);} .p-2 .phase-header h2{color:var(--p2);}
+  .p-3 .phase-header{border-color:var(--p3);} .p-3 .phase-header h2{color:var(--p3);}
+  .p-4 .phase-header{border-color:var(--p4);} .p-4 .phase-header h2{color:var(--p4);}
+  .p-5 .phase-header{border-color:var(--p5);} .p-5 .phase-header h2{color:var(--p5);}
+  .p-6 .phase-header{border-color:var(--p6);} .p-6 .phase-header h2{color:var(--p6);}
+  .chrono-header .phase-header{border-color:#777;} .chrono-header .phase-header h2{color:#aaa;}
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 11px; padding: 13px; cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    position: relative; display: flex; flex-direction: column; gap: 7px;
+  }
+  .card:hover { border-color: #555; transform: translateY(-1px); box-shadow: 0 4px 18px rgba(0,0,0,0.4); }
+  .card.watched { background: #0f0f0f; opacity: 0.6; }
+  .card.watched .card-title { text-decoration: line-through; color: var(--muted); }
+  .card.doomsday { background: linear-gradient(135deg,#2d0000,#1a0000); border: 2px solid var(--red) !important; box-shadow: 0 0 18px rgba(192,57,43,0.25); }
+
+  /* series card wider when expanded */
+  .card.series-expanded {
+    grid-column: span 2;
+  }
+  @media(max-width:560px) { .card.series-expanded { grid-column: span 1; } }
+
+  .order-num { position: absolute; top: -1px; left: -1px; background: #222; color: var(--muted); font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px 0 7px 0; }
+  .checkmark { position: absolute; top: 9px; right: 9px; width: 18px; height: 18px; border-radius: 50%; background: #2ECC71; display: flex; align-items: center; justify-content: center; font-size: 10px; opacity: 0; transition: opacity 0.2s; }
+  .card.watched .checkmark { opacity: 1; }
+
+  .card-type-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; padding: 2px 7px; border-radius: 4px; width: fit-content; }
+  .badge-movie   { background:rgba(192,57,43,0.2);  color:#E74C3C; }
+  .badge-series  { background:rgba(52,152,219,0.2);  color:#5DADE2; }
+  .badge-short   { background:rgba(241,196,15,0.2);  color:#F1C40F; }
+  .badge-special { background:rgba(46,204,113,0.2);  color:#2ECC71; }
+  .badge-animated{ background:rgba(155,89,182,0.2);  color:#BB8FCE; }
+
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; padding-right: 22px; }
+  .card-meta { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+  .card-year { font-size: 11px; color: var(--muted); }
+  .card-platform { font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+  .platform-theater { background:#1a1a4e; color:#74b9ff; }
+  .platform-disney  { background:#1a3a4e; color:#4fc3f7; }
+
+  /* Episode progress */
+  .ep-progress-bar { height: 3px; background: #2c2c2c; border-radius: 3px; overflow: hidden; }
+  .ep-progress-fill { height: 100%; border-radius: 3px; background: var(--p4); transition: width 0.3s; }
+  .ep-progress-text { font-size: 10px; color: var(--muted); }
+
+  /* Episodes expand toggle */
+  .ep-toggle {
+    margin-top: 2px; padding: 5px 0; border-radius: 6px;
+    border: 1px solid var(--card-border); background: transparent;
+    color: var(--muted); font-size: 11px; cursor: pointer;
+    transition: all 0.2s; font-weight: 600; text-align: center; width: 100%;
+  }
+  .ep-toggle:hover { border-color: #5DADE2; color: #5DADE2; }
+
+  /* Episode list */
+  .ep-list { display: none; margin-top: 6px; flex-direction: column; gap: 2px; }
+  .ep-list.open { display: flex; }
+  .ep-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 7px; border-radius: 6px; cursor: pointer;
+    transition: background 0.15s; font-size: 12px;
+  }
+  .ep-item:hover { background: rgba(255,255,255,0.04); }
+  .ep-check {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 1px solid #444; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 9px; transition: all 0.15s;
+  }
+  .ep-item.ep-watched .ep-check { background: #2ECC71; border-color: #2ECC71; color: #000; }
+  .ep-item.ep-watched .ep-title { text-decoration: line-through; color: var(--muted); }
+  .ep-num { color: var(--muted); font-size: 10px; min-width: 22px; }
+  .ep-title { color: var(--text); line-height: 1.3; }
+
+  .ep-actions { display: flex; gap: 6px; margin-top: 4px; }
+  .ep-action-btn {
+    flex: 1; padding: 4px; border-radius: 5px; border: 1px solid var(--card-border);
+    background: transparent; color: var(--muted); font-size: 10px; cursor: pointer;
+    transition: all 0.15s; font-weight: 600;
+  }
+  .ep-action-btn:hover { border-color: #5DADE2; color: #5DADE2; }
+
+  /* Watch button for movies/shorts */
+  .watch-btn {
+    margin-top: auto; padding: 5px 0; border-radius: 6px;
+    border: 1px solid var(--card-border); background: transparent;
+    color: var(--muted); font-size: 11px; cursor: pointer;
+    transition: all 0.2s; font-weight: 600; text-align: center; width: 100%;
+  }
+  .watch-btn:hover { border-color: var(--red); color: #fff; background: rgba(192,57,43,0.1); }
+  .card.watched .watch-btn { border-color: #2ECC71; color: #2ECC71; background: rgba(46,204,113,0.08); }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); display: none; }
+  .empty-state.show { display: block; }
+
+  @media(max-width:600px) {
+    header,.stats-bar,.controls,.main { padding-left:14px; padding-right:14px; }
+    .cards-grid { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <h1>MCU <span>●</span> Dashboard</h1>
+    <p>Todos os filmes, séries e curtas · Rumo ao Doomsday</p>
+  </div>
+  <div class="countdown-box">
+    <div class="label">⚡ Avengers: Doomsday — 18 Dez 2026</div>
+    <div class="countdown-units">
+      <div class="cd-unit"><span class="val" id="cd-d">--</span><span class="lbl">dias</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-unit"><span class="val" id="cd-h">--</span><span class="lbl">horas</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-unit"><span class="val" id="cd-m">--</span><span class="lbl">min</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-unit"><span class="val" id="cd-s">--</span><span class="lbl">seg</span></div>
+    </div>
+    <div class="sub">para o Doomsday 💥</div>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="num" id="s-total">0</div><div class="lbl">Total</div></div>
+  <div class="stat"><div class="num" id="s-movies">0</div><div class="lbl">Filmes</div></div>
+  <div class="stat"><div class="num" id="s-series">0</div><div class="lbl">Séries</div></div>
+  <div class="stat"><div class="num" id="s-shorts">0</div><div class="lbl">Curtas</div></div>
+  <div class="stat"><div class="num" id="s-eps">0</div><div class="lbl">Episódios</div></div>
+  <div class="stat"><div class="num" id="s-watched">0</div><div class="lbl">Assistidos</div></div>
+  <div class="progress-wrap">
+    <div class="progress-label"><span>Progresso geral</span><span id="s-pct">0%</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="s-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="controls">
+  <input type="text" class="search-input" id="search" placeholder="🔍 Buscar título...">
+  <div class="divider"></div>
+  <div class="filter-group" id="view-btns">
+    <button class="btn active" data-view="phase">📂 Por Fase</button>
+    <button class="btn" data-view="chrono">🕐 Cronológico (in-universe)</button>
+  </div>
+  <div class="divider"></div>
+  <div class="filter-group" id="type-btns">
+    <button class="btn active" data-type="all">Tudo</button>
+    <button class="btn" data-type="movie">🎬 Filmes</button>
+    <button class="btn" data-type="series">📺 Séries</button>
+    <button class="btn" data-type="short">⚡ Curtas</button>
+    <button class="btn" data-type="special">✨ Especiais</button>
+    <button class="btn" data-type="animated">✏️ Animados</button>
+  </div>
+  <div class="divider"></div>
+  <div class="filter-group" id="phase-btns">
+    <button class="btn active" data-phase="all">Todas as Fases</button>
+    <button class="btn p1" data-phase="1">Fase 1</button>
+    <button class="btn p2" data-phase="2">Fase 2</button>
+    <button class="btn p3" data-phase="3">Fase 3</button>
+    <button class="btn p4" data-phase="4">Fase 4</button>
+    <button class="btn p5" data-phase="5">Fase 5</button>
+    <button class="btn p6" data-phase="6">Fase 6</button>
+  </div>
+  <div class="divider"></div>
+  <button class="btn" id="hide-btn">👁 Ocultar assistidos</button>
+  <button class="btn" id="reset-btn" style="border-color:#922B21;color:#E74C3C;">✕ Resetar</button>
+</div>
+
+<div class="main" id="main"></div>
+<div class="empty-state" id="empty">🔍<p style="margin-top:10px">Nenhum resultado.</p></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DADOS
+//  release: ordem de lançamento
+//  chrono:  ordem cronológica in-universe (eventos MCU)
+// ═══════════════════════════════════════════════════════
+function eps(list){ return list.map((t,i)=>({n:i+1,t})); }
+function epsN(count, prefix='Episódio'){
+  return Array.from({length:count},(_,i)=>({n:i+1,t:`${prefix} ${i+1}`}));
+}
+
+const MCU = [
+// ── FASE 1 ─────────────────────────────────────────────────────────────────
+{id:1, ph:1, rel:7,  chr:1,  type:'movie',   title:'Capitão América: O Primeiro Vingador', year:2011, plat:'theater',
+ note:'Ambientado em 1942–1945'},
+{id:2, ph:1, rel:1,  chr:2,  type:'movie',   title:'Capitã Marvel', year:2019, plat:'theater',
+ note:'Ambientado em 1995 — assistir antes de Endgame'},
+{id:3, ph:1, rel:2,  chr:3,  type:'movie',   title:'Iron Man', year:2008, plat:'theater'},
+{id:4, ph:1, rel:3,  chr:4,  type:'short',   title:'The Consultant', year:2011, plat:'disney',
+ note:'Curta — após os eventos de Thor'},
+{id:5, ph:1, rel:4,  chr:5,  type:'short',   title:'A Funny Thing... Thor\'s Hammer', year:2011, plat:'disney'},
+{id:6, ph:1, rel:5,  chr:6,  type:'movie',   title:'O Incrível Hulk', year:2008, plat:'theater',
+ note:'Simultâneo a Iron Man 2 e Thor'},
+{id:7, ph:1, rel:6,  chr:7,  type:'movie',   title:'Iron Man 2', year:2010, plat:'theater'},
+{id:8, ph:1, rel:8,  chr:8,  type:'movie',   title:'Thor', year:2011, plat:'theater'},
+{id:9, ph:1, rel:9,  chr:9,  type:'movie',   title:'Os Vingadores', year:2012, plat:'theater'},
+{id:10,ph:1, rel:10, chr:10, type:'short',   title:'Item 47', year:2012, plat:'disney'},
+
+// ── FASE 2 ─────────────────────────────────────────────────────────────────
+{id:11,ph:2, rel:11, chr:11, type:'movie',   title:'Iron Man 3', year:2013, plat:'theater', note:'Natal de 2012'},
+{id:12,ph:2, rel:12, chr:12, type:'movie',   title:'Thor: O Mundo Sombrio', year:2013, plat:'theater'},
+{id:13,ph:2, rel:13, chr:13, type:'short',   title:'Agent Carter (Curta)', year:2013, plat:'disney'},
+{id:14,ph:2, rel:14, chr:14, type:'short',   title:'All Hail the King', year:2014, plat:'disney'},
+{id:15,ph:2, rel:15, chr:15, type:'movie',   title:'Capitão América: O Soldado Invernal', year:2014, plat:'theater'},
+{id:16,ph:2, rel:16, chr:16, type:'movie',   title:'Guardiões da Galáxia', year:2014, plat:'theater'},
+{id:17,ph:2, rel:17, chr:17, type:'movie',   title:'Guardiões da Galáxia Vol. 2', year:2017, plat:'theater', note:'Ambientado meses após Vol. 1'},
+{id:18,ph:2, rel:18, chr:18, type:'movie',   title:'Vingadores: Era de Ultron', year:2015, plat:'theater'},
+{id:19,ph:2, rel:19, chr:19, type:'movie',   title:'Homem-Formiga', year:2015, plat:'theater'},
+
+// ── FASE 3 ─────────────────────────────────────────────────────────────────
+{id:20,ph:3, rel:20, chr:20, type:'short',   title:'Team Thor: Part 1', year:2016, plat:'disney'},
+{id:21,ph:3, rel:21, chr:21, type:'movie',   title:'Capitão América: Guerra Civil', year:2016, plat:'theater'},
+{id:22,ph:3, rel:22, chr:22, type:'movie',   title:'Viúva Negra', year:2021, plat:'theater', note:'Ambientado logo após Guerra Civil (2016)'},
+{id:23,ph:3, rel:23, chr:23, type:'movie',   title:'Homem-Aranha: De Volta ao Lar', year:2017, plat:'theater'},
+{id:24,ph:3, rel:24, chr:24, type:'movie',   title:'Doutor Estranho', year:2016, plat:'theater'},
+{id:25,ph:3, rel:25, chr:25, type:'movie',   title:'Pantera Negra', year:2018, plat:'theater'},
+{id:26,ph:3, rel:26, chr:26, type:'short',   title:'Team Thor: Part 2', year:2017, plat:'disney'},
+{id:27,ph:3, rel:27, chr:27, type:'movie',   title:'Thor: Ragnarok', year:2017, plat:'theater'},
+{id:28,ph:3, rel:28, chr:28, type:'short',   title:'Team Darryl', year:2018, plat:'disney'},
+{id:29,ph:3, rel:29, chr:29, type:'movie',   title:'Vingadores: Guerra Infinita', year:2018, plat:'theater'},
+{id:30,ph:3, rel:30, chr:30, type:'movie',   title:'Homem-Formiga e a Vespa', year:2018, plat:'theater', note:'Parcialmente antes/durante o Snap'},
+{id:31,ph:3, rel:31, chr:31, type:'movie',   title:'Vingadores: Ultimato', year:2019, plat:'theater'},
+{id:32,ph:3, rel:32, chr:32, type:'movie',   title:'Homem-Aranha: Longe de Casa', year:2019, plat:'theater'},
+
+// ── FASE 4 ─────────────────────────────────────────────────────────────────
+{id:33,ph:4, rel:33, chr:33, type:'series',  title:'Loki — Temporada 1', year:2021, plat:'disney',
+ note:'Inicia na linha temporal de 2012',
+ episodes: eps(['Propósito Glorioso','A Variante','Lamentis','O Evento Nexo','Jornada ao Mistério','Por Todo o Tempo. Sempre.'])},
+{id:34,ph:4, rel:34, chr:34, type:'animated',title:'What If...? — Temporada 1', year:2021, plat:'disney',
+ note:'Multiverso — linha adjacente',
+ episodes: eps(['E se... Capitã Carter Fosse a Primeira Vingadora?','E se... T\'Challa se Tornasse um Senhor das Estrelas?','E se... o Mundo Perdesse seus Heróis?','E se... Doutor Estranho Perdesse o Coração?','E se... Zumbis?!','E se... Killmonger Salvasse Tony Stark?','E se... Thor Fosse Filho Único?','E se... Ultron Vencesse?','E se... o Observador Quebrasse seu Juramento?'])},
+{id:35,ph:4, rel:35, chr:35, type:'series',  title:'WandaVision', year:2021, plat:'disney',
+ note:'3 semanas após Ultimato (2023)',
+ episodes: eps(['Filmado ao Vivo','Não Toque no Dial','Agora em Cores','Interrompemos a Programação','Num Episódio Muito Especial...','Halloween Espetacular!','Quebrando a Quarta Parede','Anteriormente em...','O Finale da Série'])},
+{id:36,ph:4, rel:36, chr:36, type:'series',  title:'Falcão e o Soldado Invernal', year:2021, plat:'disney',
+ note:'6 meses após Ultimato (2024)',
+ episodes: eps(['Nova Ordem Mundial','O Homem da Bandeira','Power Broker','O Mundo Inteiro Está Assistindo','Verdade','Um Mundo, Um Povo'])},
+{id:37,ph:4, rel:37, chr:37, type:'movie',   title:'Shang-Chi e a Lenda dos Dez Anéis', year:2021, plat:'theater'},
+{id:38,ph:4, rel:38, chr:38, type:'movie',   title:'Eternos', year:2021, plat:'theater'},
+{id:39,ph:4, rel:39, chr:39, type:'movie',   title:'Homem-Aranha: Sem Volta Para Casa', year:2021, plat:'theater'},
+{id:40,ph:4, rel:40, chr:40, type:'series',  title:'Gavião Arqueiro', year:2021, plat:'disney',
+ note:'Natal de 2024',
+ episodes: eps(['Nunca Conheça Seus Heróis','Esconde-Esconde','Ecos','Parceiros, Certo?','Ronin','Então Este É o Natal?'])},
+{id:41,ph:4, rel:41, chr:41, type:'series',  title:'Cavaleiro da Lua', year:2022, plat:'disney',
+ episodes: eps(['O Problema do Peixinho','Invoque o Traje','O Tipo Amigável','A Tumba','Asilo','Deuses e Monstros'])},
+{id:42,ph:4, rel:42, chr:42, type:'movie',   title:'Doutor Estranho no Multiverso da Loucura', year:2022, plat:'theater'},
+{id:43,ph:4, rel:43, chr:43, type:'series',  title:'Ms. Marvel', year:2022, plat:'disney',
+ episodes: eps(['Generation Why','Esmagado','Destinado','Vendo Vermelho','Tempo e Mais Uma Vez','Sem Normal'])},
+{id:44,ph:4, rel:44, chr:44, type:'movie',   title:'Thor: Amor e Trovão', year:2022, plat:'theater'},
+{id:45,ph:4, rel:45, chr:45, type:'series',  title:'She-Hulk: Consultora Jurídica', year:2022, plat:'disney',
+ episodes: eps(['Uma Quantidade Normal de Raiva','Lei Super-Humana','O Povo vs. Emil Blonsky','Isso Não É Magia de Verdade?','Calça Justa','Apenas Jen','O Retiro','Ribbit e Rasga','De Quem É Esta Série?'])},
+{id:46,ph:4, rel:46, chr:46, type:'special', title:'I Am Groot — Temporada 1', year:2022, plat:'disney',
+ episodes: eps(['Primeiros Passos de Groot','O Pequeno','A Busca de Groot','Groot e as Calças','Opus Magnum'])},
+{id:47,ph:4, rel:47, chr:47, type:'special', title:'Lobisomem à Noite', year:2022, plat:'disney',
+ episodes:[{n:1,t:'Especial de Halloween'}]},
+{id:48,ph:4, rel:48, chr:48, type:'special', title:'Pantera Negra: Wakanda Para Sempre', year:2022, plat:'theater'},
+{id:49,ph:4, rel:49, chr:49, type:'special', title:'Esp. de Natal dos Guardiões da Galáxia', year:2022, plat:'disney',
+ episodes:[{n:1,t:'Especial de Natal'}]},
+
+// ── FASE 5 ─────────────────────────────────────────────────────────────────
+{id:50,ph:5, rel:50, chr:50, type:'movie',   title:'Homem-Formiga e a Vespa: Quantumania', year:2023, plat:'theater'},
+{id:51,ph:5, rel:51, chr:51, type:'movie',   title:'Guardiões da Galáxia Vol. 3', year:2023, plat:'theater'},
+{id:52,ph:5, rel:52, chr:52, type:'special', title:'I Am Groot — Temporada 2', year:2023, plat:'disney',
+ episodes: eps(['Groot Bisbilhota','Doce Surpresa de Groot','Road Trip de Groot e Rocket','Groot Toma Banho','Groot Vai à Escola'])},
+{id:53,ph:5, rel:53, chr:53, type:'series',  title:'Invasão Secreta', year:2023, plat:'disney',
+ episodes: eps(['Ressurreição','Promessas','Traição','Amada','Colheita','Lar'])},
+{id:54,ph:5, rel:54, chr:54, type:'series',  title:'Loki — Temporada 2', year:2023, plat:'disney',
+ episodes: eps(['Ouroboros','Quebrando Brad','1893','Coração da TVA','Ciência/Ficção','Propósito Glorioso'])},
+{id:55,ph:5, rel:55, chr:55, type:'movie',   title:'As Marvels', year:2023, plat:'theater'},
+{id:56,ph:5, rel:56, chr:56, type:'animated',title:'What If...? — Temporada 2', year:2023, plat:'disney',
+ episodes: eps(['E se... Nebula Entrou para o Corpo Nova?','E se... Peter Quill Atacou os Vingadores?','E se... Happy Hogan Salvou o Natal?','E se... Homem de Ferro Esmagou no Grão-Mestre?','E se... Capitã Carter Lutou Contra o HYDRA Stomper?','E se... Kahhori Refez o Mundo?','E se... Hela Encontrou os Dez Anéis?','E se... Os Vingadores se Unissem em 1602?','E se... Estranho Supremo Interferisse?'])},
+{id:57,ph:5, rel:57, chr:57, type:'series',  title:'Echo', year:2024, plat:'disney',
+ episodes: eps(['Chafa','Lowak','Taloa','Tuklo','Wahkoha'])},
+{id:58,ph:5, rel:58, chr:58, type:'movie',   title:'Deadpool & Wolverine', year:2024, plat:'theater', note:'Multiverso — CVA'},
+{id:59,ph:5, rel:59, chr:59, type:'series',  title:'Agatha Desde Sempre', year:2024, plat:'disney',
+ episodes: eps(['Buscas a Estrada das Bruxas?','Ops!... Matei Uma Bruxa de Novo','Por Quilômetros de Terreno Acidentado','Se Não Posso Te Alcançar, Deixa Eu Te Ensinar','Jane Doe','Familiar ao Seu Lado','A Mão da Morte em Minha Mão','Me Siga Nesta Jornada','Donzela, Mãe, Anciã'])},
+{id:60,ph:5, rel:60, chr:60, type:'animated',title:'What If...? — Temporada 3', year:2024, plat:'disney',
+ episodes: eps(['E se... o Multiverso Precisasse de Salvação?','E se... os Illuminati Fossem os Últimos Vingadores?','E se... Capitã Carter Encontrasse o Fim do Mundo?','E se... os Vingadores do Multiverso Se Unissem?'])},
+
+// ── FASE 6 ─────────────────────────────────────────────────────────────────
+{id:61,ph:6, rel:61, chr:61, type:'movie',   title:'Capitão América: Admirável Mundo Novo', year:2025, plat:'theater'},
+{id:62,ph:6, rel:62, chr:62, type:'animated',title:'Seu Amigável Homem-Aranha (Temp. 1)', year:2025, plat:'disney',
+ note:'Animado — Peter Parker no ensino médio',
+ episodes: eps(['Bem-Vindo ao HYDRA Hive','Novo Vizinho','O Estudante Se Torna o Mestre','Spidey-Man & Robbie','Happy Camper','Electrifying','Oscorp: Boa e Confiável?','O Retorno de Ned','O Doutor Estranho Visitou a Escola?','A Ameaça do Scorpion','Flash Mob','Dias de Glória','O Dia do Espetáculo'])},
+{id:63,ph:6, rel:63, chr:63, type:'series',  title:'Demolidor: Renascido', year:2025, plat:'disney',
+ episodes: eps(['Semper Fidelis','Reckoning','O Que Sustenta a Vida','Head Case','Guarda os Amigos Perto','O Forasteiro','Um Assassino Chamado Lucky','Nenhum Bem Feito','Demolidor'])},
+{id:64,ph:6, rel:64, chr:64, type:'movie',   title:'Thunderbolts*', year:2025, plat:'theater'},
+{id:65,ph:6, rel:65, chr:65, type:'movie',   title:'Os Fantásticos: Primeiros Passos', year:2025, plat:'theater', note:'Anos 60 alternativo'},
+{id:66,ph:6, rel:66, chr:66, type:'series',  title:'Olhos de Wakanda', year:2025, plat:'disney',
+ note:'Antologia animada — história do vibranium',
+ episodes: eps(['Warrior Falls','O Primeiro Ladrão de Vibranium','As Garras da Pantera','Erva em Forma de Coração'])},
+{id:67,ph:6, rel:67, chr:67, type:'series',  title:'Ironheart', year:2025, plat:'disney',
+ episodes: epsN(6,'Episódio')},
+{id:68,ph:6, rel:68, chr:68, type:'animated',title:'Marvel Zombies', year:2025, plat:'disney',
+ episodes: epsN(6,'Episódio')},
+{id:69,ph:6, rel:69, chr:69, type:'series',  title:'Wonder Man', year:2025, plat:'disney',
+ episodes: epsN(6,'Episódio')},
+{id:70,ph:6, rel:70, chr:70, type:'animated',title:'X-Men \'97 — Temporada 2', year:2026, plat:'disney',
+ note:'Em breve', episodes: epsN(10,'Episódio')},
+{id:71,ph:6, rel:71, chr:71, type:'series',  title:'Demolidor: Renascido — Temp. 2', year:2026, plat:'disney',
+ note:'Em breve', episodes: epsN(9,'Episódio')},
+{id:72,ph:6, rel:72, chr:72, type:'series',  title:'O Justiceiro: Um Último Assassinato', year:2026, plat:'disney',
+ note:'Em breve', episodes: epsN(6,'Episódio')},
+{id:73,ph:6, rel:73, chr:73, type:'animated',title:'Seu Amigável Homem-Aranha (Temp. 2)', year:2026, plat:'disney',
+ note:'Em breve', episodes: epsN(13,'Episódio')},
+{id:74,ph:6, rel:74, chr:74, type:'movie',   title:'Homem-Aranha: Brand New Day', year:2026, plat:'theater'},
+{id:75,ph:6, rel:75, chr:75, type:'movie',   title:'Vingadores: Doomsday', year:2026, plat:'theater', doomsday:true},
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+const WK = 'mcu_w3';   // watched items (movies/shorts)
+const EK = 'mcu_e3';   // watched episodes map { "id_ep": true }
+
+let watched = new Set(JSON.parse(localStorage.getItem(WK)||'[]'));
+let watchedEps = JSON.parse(localStorage.getItem(EK)||'{}');
+let viewMode = 'phase';
+let activeType = 'all';
+let activePhase = 'all';
+let searchQ = '';
+let hideWatched = false;
+let expanded = new Set(); // series with open episode list
+
+function saveW(){ localStorage.setItem(WK, JSON.stringify([...watched])); }
+function saveE(){ localStorage.setItem(EK, JSON.stringify(watchedEps)); }
+
+// ═══════════════════════════════════════════════════════
+//  COUNTDOWN
+// ═══════════════════════════════════════════════════════
+function pad(n){ return String(n).padStart(2,'0'); }
+function tick(){
+  const t = new Date('2026-12-18T00:00:00') - new Date();
+  if(t<=0){
+    ['d','h','m','s'].forEach(x=>document.getElementById('cd-'+x).textContent='00');
+    return;
+  }
+  document.getElementById('cd-d').textContent = pad(Math.floor(t/864e5));
+  document.getElementById('cd-h').textContent = pad(Math.floor(t%864e5/36e5));
+  document.getElementById('cd-m').textContent = pad(Math.floor(t%36e5/6e4));
+  document.getElementById('cd-s').textContent = pad(Math.floor(t%6e4/1e3));
+}
+setInterval(tick,1000); tick();
+
+// ═══════════════════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════════════════
+function totalEpisodes(item){ return item.episodes ? item.episodes.length : 0; }
+function watchedEpsCount(item){
+  if(!item.episodes) return 0;
+  return item.episodes.filter(e=>watchedEps[item.id+'_'+e.n]).length;
+}
+function isItemWatched(item){
+  if(item.episodes) return watchedEpsCount(item) === item.episodes.length && item.episodes.length > 0;
+  return watched.has(item.id);
+}
+
+function updateStats(){
+  const total = MCU.length;
+  const movies = MCU.filter(m=>m.type==='movie').length;
+  const series = MCU.filter(m=>m.type==='series'||m.type==='special'||m.type==='animated').length;
+  const shorts = MCU.filter(m=>m.type==='short').length;
+  const eps = MCU.reduce((a,m)=>a+totalEpisodes(m),0);
+  const w = MCU.filter(m=>isItemWatched(m)).length;
+  const wEps = MCU.reduce((a,m)=>a+watchedEpsCount(m),0);
+  const pct = Math.round(((w + wEps) / (total + eps)) * 100);
+
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-movies').textContent = movies;
+  document.getElementById('s-series').textContent = series;
+  document.getElementById('s-shorts').textContent = shorts;
+  document.getElementById('s-eps').textContent = eps;
+  document.getElementById('s-watched').textContent = w;
+  document.getElementById('s-pct').textContent = pct+'%';
+  document.getElementById('s-fill').style.width = pct+'%';
+}
+
+// ═══════════════════════════════════════════════════════
+//  FILTER
+// ═══════════════════════════════════════════════════════
+function filtered(){
+  return MCU.filter(item=>{
+    if(activePhase!=='all' && item.ph!==+activePhase) return false;
+    if(activeType!=='all' && item.type!==activeType) return false;
+    if(searchQ && !item.title.toLowerCase().includes(searchQ.toLowerCase())) return false;
+    if(hideWatched && isItemWatched(item)) return false;
+    return true;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  CARD HTML
+// ═══════════════════════════════════════════════════════
+const phNames={1:'Fase 1 — Saga dos Vingadores (2008–2012)',2:'Fase 2 — Saga dos Vingadores (2013–2015)',3:'Fase 3 — Saga do Infinito (2016–2019)',4:'Fase 4 — Saga do Multiverso (2021–2022)',5:'Fase 5 — Saga do Multiverso (2023–2024)',6:'Fase 6 — Saga do Multiverso (2025–2026)'};
+const typeBadge={movie:'<span class="card-type-badge badge-movie">🎬 Filme</span>',series:'<span class="card-type-badge badge-series">📺 Série</span>',short:'<span class="card-type-badge badge-short">⚡ Curta</span>',special:'<span class="card-type-badge badge-special">✨ Especial</span>',animated:'<span class="card-type-badge badge-animated">✏️ Animado</span>'};
+const platBadge={theater:'<span class="card-platform platform-theater">Cinema</span>',disney:'<span class="card-platform platform-disney">Disney+</span>'};
+
+function cardHTML(item){
+  const isW = isItemWatched(item);
+  const hasSeries = item.episodes && item.episodes.length > 0;
+  const isExp = expanded.has(item.id);
+  const ec = hasSeries ? watchedEpsCount(item) : 0;
+  const et = hasSeries ? item.episodes.length : 0;
+  const epPct = et > 0 ? Math.round((ec/et)*100) : 0;
+  const orderNum = viewMode==='chrono' ? item.chr : item.rel;
+
+  let bottom = '';
+  if(hasSeries){
+    bottom = `
+      <div class="ep-progress-text">${ec}/${et} episódios</div>
+      <div class="ep-progress-bar"><div class="ep-progress-fill" style="width:${epPct}%"></div></div>
+      <button class="ep-toggle" data-id="${item.id}">${isExp?'▲ Fechar episódios':'▼ Ver episódios ('+et+')'}</button>
+      ${isExp ? `<div class="ep-list open" id="eplist-${item.id}">
+        <div class="ep-actions">
+          <button class="ep-action-btn" data-all-id="${item.id}">✓ Marcar todos</button>
+          <button class="ep-action-btn" data-none-id="${item.id}">✕ Desmarcar todos</button>
+        </div>
+        ${item.episodes.map(e=>{
+          const ew = !!watchedEps[item.id+'_'+e.n];
+          return `<div class="ep-item${ew?' ep-watched':''}" data-epid="${item.id}_${e.n}">
+            <div class="ep-check">${ew?'✓':''}</div>
+            <span class="ep-num">E${e.n}</span>
+            <span class="ep-title">${e.t}</span>
+          </div>`;
+        }).join('')}
+      </div>` : `<div class="ep-list" id="eplist-${item.id}"></div>`}
+    `;
+  } else {
+    bottom = `<button class="watch-btn" data-id="${item.id}">${isW?'✓ Assistido':'+ Marcar como assistido'}</button>`;
+  }
+
+  return `<div class="card${isW?' watched':''}${item.doomsday?' doomsday':''}${hasSeries&&isExp?' series-expanded':''}" data-id="${item.id}">
+    <span class="order-num">#${orderNum}</span>
+    <span class="checkmark">✓</span>
+    ${typeBadge[item.type]||''}
+    <div class="card-title">${item.title}${item.doomsday?' 💥':''}</div>
+    <div class="card-meta">
+      <span class="card-year">${item.year}</span>
+      ${platBadge[item.plat]||''}
+      ${item.note?`<span style="font-size:10px;color:var(--muted);font-style:italic;width:100%;margin-top:2px">${item.note}</span>`:''}
+    </div>
+    ${bottom}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════
+function render(){
+  const items = filtered();
+  const cont = document.getElementById('main');
+  const empty = document.getElementById('empty');
+  if(!items.length){ cont.innerHTML=''; empty.classList.add('show'); return; }
+  empty.classList.remove('show');
+
+  if(viewMode==='chrono'){
+    const sorted = [...items].sort((a,b)=>a.chr-b.chr);
+    const wc = sorted.filter(i=>isItemWatched(i)).length;
+    cont.innerHTML = `<div class="phase-section chrono-header">
+      <div class="phase-header"><h2>Ordem Cronológica in-Universe</h2><span class="ph-count">${wc}/${sorted.length} concluídos</span></div>
+      <div class="cards-grid">${sorted.map(cardHTML).join('')}</div></div>`;
+  } else {
+    const phases = [...new Set(items.map(i=>i.ph))].sort((a,b)=>a-b);
+    cont.innerHTML = phases.map(ph=>{
+      const phItems = items.filter(i=>i.ph===ph);
+      const wc = phItems.filter(i=>isItemWatched(i)).length;
+      return `<div class="phase-section p-${ph}">
+        <div class="phase-header"><h2>${phNames[ph]}</h2><span class="ph-count">${wc}/${phItems.length} concluídos</span></div>
+        <div class="cards-grid">${phItems.map(cardHTML).join('')}</div></div>`;
+    }).join('');
+  }
+
+  // Events — movies/shorts watch button
+  cont.querySelectorAll('.watch-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation();
+      const id=+btn.dataset.id;
+      watched.has(id)?watched.delete(id):watched.add(id);
+      saveW(); render(); updateStats();
+    });
+  });
+
+  // Events — episode toggle
+  cont.querySelectorAll('.ep-toggle').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation();
+      const id=+btn.dataset.id;
+      expanded.has(id)?expanded.delete(id):expanded.add(id);
+      render();
+    });
+  });
+
+  // Events — individual episode
+  cont.querySelectorAll('.ep-item').forEach(el=>{
+    el.addEventListener('click', e=>{ e.stopPropagation();
+      const key=el.dataset.epid;
+      watchedEps[key]?delete watchedEps[key]:(watchedEps[key]=true);
+      saveE(); render(); updateStats();
+    });
+  });
+
+  // Events — mark all / none
+  cont.querySelectorAll('[data-all-id]').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation();
+      const id=+btn.dataset.allId;
+      const item=MCU.find(i=>i.id===id);
+      if(item&&item.episodes) item.episodes.forEach(ep=>{ watchedEps[id+'_'+ep.n]=true; });
+      saveE(); render(); updateStats();
+    });
+  });
+  cont.querySelectorAll('[data-none-id]').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation();
+      const id=+btn.dataset.noneId;
+      const item=MCU.find(i=>i.id===id);
+      if(item&&item.episodes) item.episodes.forEach(ep=>{ delete watchedEps[id+'_'+ep.n]; });
+      saveE(); render(); updateStats();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONTROLS WIRING
+// ═══════════════════════════════════════════════════════
+document.getElementById('search').addEventListener('input',e=>{ searchQ=e.target.value; render(); });
+
+document.getElementById('view-btns').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-view]'); if(!btn) return;
+  viewMode=btn.dataset.view;
+  document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const phaseBtns=document.querySelectorAll('[data-phase]');
+  phaseBtns.forEach(b=>{ b.disabled=viewMode==='chrono'; });
+  render();
+});
+
+document.getElementById('type-btns').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-type]'); if(!btn) return;
+  activeType=btn.dataset.type;
+  document.querySelectorAll('[data-type]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); render();
+});
+
+document.getElementById('phase-btns').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-phase]'); if(!btn||btn.disabled) return;
+  activePhase=btn.dataset.phase;
+  document.querySelectorAll('[data-phase]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); render();
+});
+
+document.getElementById('hide-btn').addEventListener('click',e=>{
+  hideWatched=!hideWatched;
+  e.target.textContent=hideWatched?'👁 Mostrar assistidos':'👁 Ocultar assistidos';
+  e.target.classList.toggle('active',hideWatched); render();
+});
+
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  if(confirm('Resetar todo o progresso?')){
+    watched.clear(); watchedEps={}; saveW(); saveE(); render(); updateStats();
+  }
+});
+
+// ── INIT ──
+updateStats(); render();
+</script>
+</body>
+</html>
