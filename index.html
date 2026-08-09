@@ -81,6 +81,28 @@
   .btn.p6.active{background:var(--p6);border-color:var(--p6);color:#000;}
   .divider { width: 1px; background: var(--card-border); height: 26px; }
 
+  /* PROFILES */
+  .profile-bar {
+    background: #0a0a0a; padding: 8px 28px;
+    display: flex; gap: 10px; align-items: center;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .profile-bar-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .profile-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; font-size: 13px; font-weight: 900; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #profile-active-label {
+    font-size: 13px; font-weight: 700; color: var(--text); margin-left: 4px;
+    background: var(--card-bg); padding: 4px 10px; border-radius: 12px;
+    border: 1px solid var(--card-border);
+  }
+  .profile-progress { display: flex; gap: 20px; margin-left: auto; }
+  .profile-progress-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .profile-progress-dot { width: 8px; height: 8px; border-radius: 50%; }
+
   /* MAIN */
   .main { padding: 22px 28px; }
   .phase-section { margin-bottom: 36px; }
@@ -233,6 +255,14 @@
   </div>
 </div>
 
+<div class="profile-bar">
+  <span class="profile-bar-label">Perfil:</span>
+  <button class="profile-btn" data-profile="PH"  style="background:#C0392B" title="Perfil PH">PH</button>
+  <button class="profile-btn" data-profile="Bia" style="background:#9B59B6" title="Perfil Bia">Bia</button>
+  <span id="profile-active-label">PH</span>
+  <div class="profile-progress" id="profile-progress-compare"></div>
+</div>
+
 <div class="controls">
   <input type="text" class="search-input" id="search" placeholder="🔍 Buscar título...">
   <div class="divider"></div>
@@ -280,149 +310,203 @@ function epsN(count, prefix='Episódio'){
 
 const MCU = [
 // ── FASE 1 ─────────────────────────────────────────────────────────────────
-{id:1, ph:1, rel:7,  chr:1,  type:'movie',   title:'Capitão América: O Primeiro Vingador', year:2011, plat:'theater',
+{id:1,  ph:1, rel:7,  chr:2,  type:'movie',    title:'Capitão América: O Primeiro Vingador', year:2011, plat:'theater',
  note:'Ambientado em 1942–1945'},
-{id:2, ph:1, rel:1,  chr:2,  type:'movie',   title:'Capitã Marvel', year:2019, plat:'theater',
+{id:2,  ph:1, rel:2,  chr:4,  type:'movie',    title:'Capitã Marvel', year:2019, plat:'theater',
  note:'Ambientado em 1995 — assistir antes de Endgame'},
-{id:3, ph:1, rel:2,  chr:3,  type:'movie',   title:'Iron Man', year:2008, plat:'theater'},
-{id:4, ph:1, rel:3,  chr:4,  type:'short',   title:'The Consultant', year:2011, plat:'disney',
+{id:3,  ph:1, rel:3,  chr:5,  type:'movie',    title:'Homem de Ferro', year:2008, plat:'theater'},
+{id:4,  ph:1, rel:4,  chr:10, type:'short',    title:'Marvel One-Shot: The Consultant', year:2011, plat:'disney',
  note:'Curta — após os eventos de Thor'},
-{id:5, ph:1, rel:4,  chr:5,  type:'short',   title:'A Funny Thing... Thor\'s Hammer', year:2011, plat:'disney'},
-{id:6, ph:1, rel:5,  chr:6,  type:'movie',   title:'O Incrível Hulk', year:2008, plat:'theater',
+{id:5,  ph:1, rel:5,  chr:8,  type:'short',    title:'Marvel One-Shot: A Funny Thing... Thor\'s Hammer', year:2011, plat:'disney'},
+{id:6,  ph:1, rel:6,  chr:7,  type:'movie',    title:'O Incrível Hulk', year:2008, plat:'theater',
  note:'Simultâneo a Iron Man 2 e Thor'},
-{id:7, ph:1, rel:6,  chr:7,  type:'movie',   title:'Iron Man 2', year:2010, plat:'theater'},
-{id:8, ph:1, rel:8,  chr:8,  type:'movie',   title:'Thor', year:2011, plat:'theater'},
-{id:9, ph:1, rel:9,  chr:9,  type:'movie',   title:'Os Vingadores', year:2012, plat:'theater'},
-{id:10,ph:1, rel:10, chr:10, type:'short',   title:'Item 47', year:2012, plat:'disney'},
+{id:7,  ph:1, rel:8,  chr:6,  type:'movie',    title:'Homem de Ferro 2', year:2010, plat:'theater'},
+{id:8,  ph:1, rel:9,  chr:9,  type:'movie',    title:'Thor', year:2011, plat:'theater'},
+{id:9,  ph:1, rel:10, chr:11, type:'movie',    title:'Os Vingadores', year:2012, plat:'theater'},
+{id:10, ph:1, rel:11, chr:12, type:'short',    title:'Marvel One-Shot: Item 47', year:2012, plat:'disney'},
 
 // ── FASE 2 ─────────────────────────────────────────────────────────────────
-{id:11,ph:2, rel:11, chr:11, type:'movie',   title:'Iron Man 3', year:2013, plat:'theater', note:'Natal de 2012'},
-{id:12,ph:2, rel:12, chr:12, type:'movie',   title:'Thor: O Mundo Sombrio', year:2013, plat:'theater'},
-{id:13,ph:2, rel:13, chr:13, type:'short',   title:'Agent Carter (Curta)', year:2013, plat:'disney'},
-{id:14,ph:2, rel:14, chr:14, type:'short',   title:'All Hail the King', year:2014, plat:'disney'},
-{id:15,ph:2, rel:15, chr:15, type:'movie',   title:'Capitão América: O Soldado Invernal', year:2014, plat:'theater'},
-{id:16,ph:2, rel:16, chr:16, type:'movie',   title:'Guardiões da Galáxia', year:2014, plat:'theater'},
-{id:17,ph:2, rel:17, chr:17, type:'movie',   title:'Guardiões da Galáxia Vol. 2', year:2017, plat:'theater', note:'Ambientado meses após Vol. 1'},
-{id:18,ph:2, rel:18, chr:18, type:'movie',   title:'Vingadores: Era de Ultron', year:2015, plat:'theater'},
-{id:19,ph:2, rel:19, chr:19, type:'movie',   title:'Homem-Formiga', year:2015, plat:'theater'},
+{id:11, ph:2, rel:12, chr:14, type:'movie',    title:'Homem de Ferro 3', year:2013, plat:'theater', note:'Natal de 2012'},
+{id:12, ph:2, rel:13, chr:13, type:'movie',    title:'Thor: O Mundo Sombrio', year:2013, plat:'theater'},
+{id:13, ph:2, rel:14, chr:3,  type:'short',    title:'Marvel One-Shot: Agent Carter', year:2013, plat:'disney'},
+{id:14, ph:2, rel:15, chr:15, type:'short',    title:'Marvel One-Shot: All Hail the King', year:2014, plat:'disney'},
+{id:15, ph:2, rel:16, chr:16, type:'movie',    title:'Capitão América: O Soldado Invernal', year:2014, plat:'theater'},
+{id:16, ph:2, rel:17, chr:17, type:'movie',    title:'Guardiões da Galáxia', year:2014, plat:'theater'},
+{id:17, ph:2, rel:18, chr:18, type:'movie',    title:'Guardiões da Galáxia Vol. 2', year:2017, plat:'theater', note:'Ambientado meses após Vol. 1'},
+{id:18, ph:2, rel:19, chr:23, type:'movie',    title:'Vingadores: Era de Ultron', year:2015, plat:'theater'},
+{id:19, ph:2, rel:20, chr:24, type:'movie',    title:'Homem-Formiga', year:2015, plat:'theater'},
 
 // ── FASE 3 ─────────────────────────────────────────────────────────────────
-{id:20,ph:3, rel:20, chr:20, type:'short',   title:'Team Thor: Part 1', year:2016, plat:'disney'},
-{id:21,ph:3, rel:21, chr:21, type:'movie',   title:'Capitão América: Guerra Civil', year:2016, plat:'theater'},
-{id:22,ph:3, rel:22, chr:22, type:'movie',   title:'Viúva Negra', year:2021, plat:'theater', note:'Ambientado logo após Guerra Civil (2016)'},
-{id:23,ph:3, rel:23, chr:23, type:'movie',   title:'Homem-Aranha: De Volta ao Lar', year:2017, plat:'theater'},
-{id:24,ph:3, rel:24, chr:24, type:'movie',   title:'Doutor Estranho', year:2016, plat:'theater'},
-{id:25,ph:3, rel:25, chr:25, type:'movie',   title:'Pantera Negra', year:2018, plat:'theater'},
-{id:26,ph:3, rel:26, chr:26, type:'short',   title:'Team Thor: Part 2', year:2017, plat:'disney'},
-{id:27,ph:3, rel:27, chr:27, type:'movie',   title:'Thor: Ragnarok', year:2017, plat:'theater'},
-{id:28,ph:3, rel:28, chr:28, type:'short',   title:'Team Darryl', year:2018, plat:'disney'},
-{id:29,ph:3, rel:29, chr:29, type:'movie',   title:'Vingadores: Guerra Infinita', year:2018, plat:'theater'},
-{id:30,ph:3, rel:30, chr:30, type:'movie',   title:'Homem-Formiga e a Vespa', year:2018, plat:'theater', note:'Parcialmente antes/durante o Snap'},
-{id:31,ph:3, rel:31, chr:31, type:'movie',   title:'Vingadores: Ultimato', year:2019, plat:'theater'},
-{id:32,ph:3, rel:32, chr:32, type:'movie',   title:'Homem-Aranha: Longe de Casa', year:2019, plat:'theater'},
+{id:20, ph:3, rel:21, chr:0,  type:'short',    title:'Equipe Thor: Parte 1', year:2016, plat:'disney'},
+{id:21, ph:3, rel:22, chr:29, type:'movie',    title:'Capitão América: Guerra Civil', year:2016, plat:'theater'},
+{id:22, ph:3, rel:23, chr:30, type:'movie',    title:'Viúva Negra', year:2021, plat:'theater', note:'Ambientado logo após Guerra Civil (2016)'},
+{id:23, ph:3, rel:24, chr:32, type:'movie',    title:'Homem-Aranha: De Volta ao Lar', year:2017, plat:'theater'},
+{id:24, ph:3, rel:25, chr:34, type:'movie',    title:'Doutor Estranho', year:2016, plat:'theater'},
+{id:25, ph:3, rel:26, chr:31, type:'movie',    title:'Pantera Negra', year:2018, plat:'theater'},
+{id:26, ph:3, rel:27, chr:0,  type:'short',    title:'Equipe Thor: Parte 2', year:2017, plat:'disney'},
+{id:27, ph:3, rel:28, chr:39, type:'movie',    title:'Thor: Ragnarok', year:2017, plat:'theater'},
+{id:28, ph:3, rel:29, chr:0,  type:'short',    title:'Equipe Darryl', year:2018, plat:'disney'},
+{id:29, ph:3, rel:30, chr:43, type:'movie',    title:'Vingadores: Guerra Infinita', year:2018, plat:'theater'},
+{id:30, ph:3, rel:31, chr:42, type:'movie',    title:'Homem-Formiga e a Vespa', year:2018, plat:'theater', note:'Parcialmente antes/durante o Snap'},
+{id:31, ph:3, rel:32, chr:44, type:'movie',    title:'Vingadores: Ultimato', year:2019, plat:'theater'},
+{id:32, ph:3, rel:33, chr:51, type:'movie',    title:'Homem-Aranha: Longe de Casa', year:2019, plat:'theater'},
+// ── DEFENDERS SAGA (Netflix) ────────────────────────────────────────────────
+{id:76, ph:3, rel:76, chr:21, type:'series',   title:'Demolidor — Temporada 1', year:2015, plat:'disney',
+ note:'Defenders Saga — ambientado em 2015', episodes: epsN(13,'Episódio')},
+{id:77, ph:3, rel:77, chr:22, type:'series',   title:'Jessica Jones — Temporada 1', year:2015, plat:'disney',
+ note:'Defenders Saga — ambientado em 2015', episodes: epsN(13,'Episódio')},
+{id:78, ph:3, rel:78, chr:25, type:'series',   title:'Demolidor — Temporada 2', year:2016, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:79, ph:3, rel:79, chr:26, type:'series',   title:'Luke Cage — Temporada 1', year:2016, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:80, ph:3, rel:80, chr:27, type:'series',   title:'Punho de Ferro — Temporada 1', year:2017, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:81, ph:3, rel:81, chr:28, type:'series',   title:'Os Defensores', year:2017, plat:'disney',
+ note:'Defenders Saga — minissérie 8 eps', episodes: epsN(8,'Episódio')},
+{id:82, ph:3, rel:82, chr:33, type:'series',   title:'O Justiceiro — Temporada 1', year:2017, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:83, ph:3, rel:83, chr:35, type:'series',   title:'Jessica Jones — Temporada 2', year:2018, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:84, ph:3, rel:84, chr:36, type:'series',   title:'Luke Cage — Temporada 2', year:2018, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:85, ph:3, rel:85, chr:37, type:'series',   title:'Punho de Ferro — Temporada 2', year:2018, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(10,'Episódio')},
+{id:86, ph:3, rel:86, chr:38, type:'series',   title:'Demolidor — Temporada 3', year:2018, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:87, ph:3, rel:87, chr:40, type:'series',   title:'O Justiceiro — Temporada 2', year:2019, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
+{id:88, ph:3, rel:88, chr:41, type:'series',   title:'Jessica Jones — Temporada 3', year:2019, plat:'disney',
+ note:'Defenders Saga', episodes: epsN(13,'Episódio')},
 
 // ── FASE 4 ─────────────────────────────────────────────────────────────────
-{id:33,ph:4, rel:33, chr:33, type:'series',  title:'Loki — Temporada 1', year:2021, plat:'disney',
+{id:33, ph:4, rel:34, chr:45, type:'series',   title:'Loki — Temporada 1', year:2021, plat:'disney',
  note:'Inicia na linha temporal de 2012',
  episodes: eps(['Propósito Glorioso','A Variante','Lamentis','O Evento Nexo','Jornada ao Mistério','Por Todo o Tempo. Sempre.'])},
-{id:34,ph:4, rel:34, chr:34, type:'animated',title:'What If...? — Temporada 1', year:2021, plat:'disney',
+{id:34, ph:4, rel:35, chr:46, type:'animated', title:'What If...? — Temporada 1', year:2021, plat:'disney',
  note:'Multiverso — linha adjacente',
  episodes: eps(['E se... Capitã Carter Fosse a Primeira Vingadora?','E se... T\'Challa se Tornasse um Senhor das Estrelas?','E se... o Mundo Perdesse seus Heróis?','E se... Doutor Estranho Perdesse o Coração?','E se... Zumbis?!','E se... Killmonger Salvasse Tony Stark?','E se... Thor Fosse Filho Único?','E se... Ultron Vencesse?','E se... o Observador Quebrasse seu Juramento?'])},
-{id:35,ph:4, rel:35, chr:35, type:'series',  title:'WandaVision', year:2021, plat:'disney',
+{id:35, ph:4, rel:36, chr:48, type:'series',   title:'WandaVision', year:2021, plat:'disney',
  note:'3 semanas após Ultimato (2023)',
  episodes: eps(['Filmado ao Vivo','Não Toque no Dial','Agora em Cores','Interrompemos a Programação','Num Episódio Muito Especial...','Halloween Espetacular!','Quebrando a Quarta Parede','Anteriormente em...','O Finale da Série'])},
-{id:36,ph:4, rel:36, chr:36, type:'series',  title:'Falcão e o Soldado Invernal', year:2021, plat:'disney',
+{id:36, ph:4, rel:37, chr:50, type:'series',   title:'Falcão e o Soldado Invernal', year:2021, plat:'disney',
  note:'6 meses após Ultimato (2024)',
  episodes: eps(['Nova Ordem Mundial','O Homem da Bandeira','Power Broker','O Mundo Inteiro Está Assistindo','Verdade','Um Mundo, Um Povo'])},
-{id:37,ph:4, rel:37, chr:37, type:'movie',   title:'Shang-Chi e a Lenda dos Dez Anéis', year:2021, plat:'theater'},
-{id:38,ph:4, rel:38, chr:38, type:'movie',   title:'Eternos', year:2021, plat:'theater'},
-{id:39,ph:4, rel:39, chr:39, type:'movie',   title:'Homem-Aranha: Sem Volta Para Casa', year:2021, plat:'theater'},
-{id:40,ph:4, rel:40, chr:40, type:'series',  title:'Gavião Arqueiro', year:2021, plat:'disney',
+{id:37, ph:4, rel:38, chr:49, type:'movie',    title:'Shang-Chi e a Lenda dos Dez Anéis', year:2021, plat:'theater'},
+{id:38, ph:4, rel:39, chr:52, type:'movie',    title:'Eternos', year:2021, plat:'theater'},
+{id:39, ph:4, rel:40, chr:53, type:'movie',    title:'Homem-Aranha: Sem Volta Para Casa', year:2021, plat:'theater'},
+{id:40, ph:4, rel:41, chr:55, type:'series',   title:'Gavião Arqueiro', year:2021, plat:'disney',
  note:'Natal de 2024',
  episodes: eps(['Nunca Conheça Seus Heróis','Esconde-Esconde','Ecos','Parceiros, Certo?','Ronin','Então Este É o Natal?'])},
-{id:41,ph:4, rel:41, chr:41, type:'series',  title:'Cavaleiro da Lua', year:2022, plat:'disney',
+{id:41, ph:4, rel:42, chr:56, type:'series',   title:'Cavaleiro da Lua', year:2022, plat:'disney',
  episodes: eps(['O Problema do Peixinho','Invoque o Traje','O Tipo Amigável','A Tumba','Asilo','Deuses e Monstros'])},
-{id:42,ph:4, rel:42, chr:42, type:'movie',   title:'Doutor Estranho no Multiverso da Loucura', year:2022, plat:'theater'},
-{id:43,ph:4, rel:43, chr:43, type:'series',  title:'Ms. Marvel', year:2022, plat:'disney',
+{id:42, ph:4, rel:43, chr:54, type:'movie',    title:'Doutor Estranho no Multiverso da Loucura', year:2022, plat:'theater'},
+{id:43, ph:4, rel:44, chr:60, type:'series',   title:'Ms. Marvel', year:2022, plat:'disney',
  episodes: eps(['Generation Why','Esmagado','Destinado','Vendo Vermelho','Tempo e Mais Uma Vez','Sem Normal'])},
-{id:44,ph:4, rel:44, chr:44, type:'movie',   title:'Thor: Amor e Trovão', year:2022, plat:'theater'},
-{id:45,ph:4, rel:45, chr:45, type:'series',  title:'She-Hulk: Consultora Jurídica', year:2022, plat:'disney',
+{id:44, ph:4, rel:45, chr:61, type:'movie',    title:'Thor: Amor e Trovão', year:2022, plat:'theater'},
+{id:45, ph:4, rel:46, chr:59, type:'series',   title:'She-Hulk: Consultora Jurídica', year:2022, plat:'disney',
  episodes: eps(['Uma Quantidade Normal de Raiva','Lei Super-Humana','O Povo vs. Emil Blonsky','Isso Não É Magia de Verdade?','Calça Justa','Apenas Jen','O Retiro','Ribbit e Rasga','De Quem É Esta Série?'])},
-{id:46,ph:4, rel:46, chr:46, type:'special', title:'I Am Groot — Temporada 1', year:2022, plat:'disney',
+{id:46, ph:4, rel:47, chr:19, type:'special',  title:'I Am Groot — Temporada 1', year:2022, plat:'disney',
  episodes: eps(['Primeiros Passos de Groot','O Pequeno','A Busca de Groot','Groot e as Calças','Opus Magnum'])},
-{id:47,ph:4, rel:47, chr:47, type:'special', title:'Lobisomem à Noite', year:2022, plat:'disney',
+{id:47, ph:4, rel:48, chr:63, type:'special',  title:'Lobisomem à Noite', year:2022, plat:'disney',
  episodes:[{n:1,t:'Especial de Halloween'}]},
-{id:48,ph:4, rel:48, chr:48, type:'special', title:'Pantera Negra: Wakanda Para Sempre', year:2022, plat:'theater'},
-{id:49,ph:4, rel:49, chr:49, type:'special', title:'Esp. de Natal dos Guardiões da Galáxia', year:2022, plat:'disney',
+{id:48, ph:4, rel:49, chr:57, type:'movie',    title:'Pantera Negra: Wakanda Para Sempre', year:2022, plat:'theater'},
+{id:49, ph:4, rel:50, chr:64, type:'special',  title:'Esp. de Natal dos Guardiões da Galáxia', year:2022, plat:'disney',
  episodes:[{n:1,t:'Especial de Natal'}]},
 
 // ── FASE 5 ─────────────────────────────────────────────────────────────────
-{id:50,ph:5, rel:50, chr:50, type:'movie',   title:'Homem-Formiga e a Vespa: Quantumania', year:2023, plat:'theater'},
-{id:51,ph:5, rel:51, chr:51, type:'movie',   title:'Guardiões da Galáxia Vol. 3', year:2023, plat:'theater'},
-{id:52,ph:5, rel:52, chr:52, type:'special', title:'I Am Groot — Temporada 2', year:2023, plat:'disney',
+{id:50, ph:5, rel:51, chr:65, type:'movie',    title:'Homem-Formiga e a Vespa: Quantumania', year:2023, plat:'theater'},
+{id:51, ph:5, rel:52, chr:66, type:'movie',    title:'Guardiões da Galáxia Vol. 3', year:2023, plat:'theater'},
+{id:52, ph:5, rel:53, chr:20, type:'special',  title:'I Am Groot — Temporada 2', year:2023, plat:'disney',
  episodes: eps(['Groot Bisbilhota','Doce Surpresa de Groot','Road Trip de Groot e Rocket','Groot Toma Banho','Groot Vai à Escola'])},
-{id:53,ph:5, rel:53, chr:53, type:'series',  title:'Invasão Secreta', year:2023, plat:'disney',
+{id:53, ph:5, rel:54, chr:67, type:'series',   title:'Invasão Secreta', year:2023, plat:'disney',
  episodes: eps(['Ressurreição','Promessas','Traição','Amada','Colheita','Lar'])},
-{id:54,ph:5, rel:54, chr:54, type:'series',  title:'Loki — Temporada 2', year:2023, plat:'disney',
+{id:54, ph:5, rel:55, chr:69, type:'series',   title:'Loki — Temporada 2', year:2023, plat:'disney',
  episodes: eps(['Ouroboros','Quebrando Brad','1893','Coração da TVA','Ciência/Ficção','Propósito Glorioso'])},
-{id:55,ph:5, rel:55, chr:55, type:'movie',   title:'As Marvels', year:2023, plat:'theater'},
-{id:56,ph:5, rel:56, chr:56, type:'animated',title:'What If...? — Temporada 2', year:2023, plat:'disney',
+{id:55, ph:5, rel:56, chr:68, type:'movie',    title:'As Marvels', year:2023, plat:'theater'},
+{id:56, ph:5, rel:57, chr:70, type:'animated', title:'What If...? — Temporada 2', year:2023, plat:'disney',
  episodes: eps(['E se... Nebula Entrou para o Corpo Nova?','E se... Peter Quill Atacou os Vingadores?','E se... Happy Hogan Salvou o Natal?','E se... Homem de Ferro Esmagou no Grão-Mestre?','E se... Capitã Carter Lutou Contra o HYDRA Stomper?','E se... Kahhori Refez o Mundo?','E se... Hela Encontrou os Dez Anéis?','E se... Os Vingadores se Unissem em 1602?','E se... Estranho Supremo Interferisse?'])},
-{id:57,ph:5, rel:57, chr:57, type:'series',  title:'Echo', year:2024, plat:'disney',
+{id:57, ph:5, rel:58, chr:58, type:'series',   title:'Echo', year:2024, plat:'disney',
  episodes: eps(['Chafa','Lowak','Taloa','Tuklo','Wahkoha'])},
-{id:58,ph:5, rel:58, chr:58, type:'movie',   title:'Deadpool & Wolverine', year:2024, plat:'theater', note:'Multiverso — CVA'},
-{id:59,ph:5, rel:59, chr:59, type:'series',  title:'Agatha Desde Sempre', year:2024, plat:'disney',
+{id:58, ph:5, rel:59, chr:71, type:'movie',    title:'Deadpool & Wolverine', year:2024, plat:'theater', note:'Multiverso — CVA'},
+{id:59, ph:5, rel:60, chr:72, type:'series',   title:'Agatha Desde Sempre', year:2024, plat:'disney',
  episodes: eps(['Buscas a Estrada das Bruxas?','Ops!... Matei Uma Bruxa de Novo','Por Quilômetros de Terreno Acidentado','Se Não Posso Te Alcançar, Deixa Eu Te Ensinar','Jane Doe','Familiar ao Seu Lado','A Mão da Morte em Minha Mão','Me Siga Nesta Jornada','Donzela, Mãe, Anciã'])},
-{id:60,ph:5, rel:60, chr:60, type:'animated',title:'What If...? — Temporada 3', year:2024, plat:'disney',
+{id:60, ph:5, rel:61, chr:73, type:'animated', title:'What If...? — Temporada 3', year:2024, plat:'disney',
  episodes: eps(['E se... o Multiverso Precisasse de Salvação?','E se... os Illuminati Fossem os Últimos Vingadores?','E se... Capitã Carter Encontrasse o Fim do Mundo?','E se... os Vingadores do Multiverso Se Unissem?'])},
 
 // ── FASE 6 ─────────────────────────────────────────────────────────────────
-{id:61,ph:6, rel:61, chr:61, type:'movie',   title:'Capitão América: Admirável Mundo Novo', year:2025, plat:'theater'},
-{id:62,ph:6, rel:62, chr:62, type:'animated',title:'Seu Amigável Homem-Aranha (Temp. 1)', year:2025, plat:'disney',
+{id:61, ph:6, rel:62, chr:75, type:'movie',    title:'Capitão América: Admirável Mundo Novo', year:2025, plat:'theater'},
+{id:62, ph:6, rel:63, chr:0,  type:'animated', title:'Seu Amigável Homem-Aranha (Temp. 1)', year:2025, plat:'disney',
  note:'Animado — Peter Parker no ensino médio',
  episodes: eps(['Bem-Vindo ao HYDRA Hive','Novo Vizinho','O Estudante Se Torna o Mestre','Spidey-Man & Robbie','Happy Camper','Electrifying','Oscorp: Boa e Confiável?','O Retorno de Ned','O Doutor Estranho Visitou a Escola?','A Ameaça do Scorpion','Flash Mob','Dias de Glória','O Dia do Espetáculo'])},
-{id:63,ph:6, rel:63, chr:63, type:'series',  title:'Demolidor: Renascido', year:2025, plat:'disney',
+{id:63, ph:6, rel:64, chr:74, type:'series',   title:'Demolidor: Renascido — Temporada 1', year:2025, plat:'disney',
  episodes: eps(['Semper Fidelis','Reckoning','O Que Sustenta a Vida','Head Case','Guarda os Amigos Perto','O Forasteiro','Um Assassino Chamado Lucky','Nenhum Bem Feito','Demolidor'])},
-{id:64,ph:6, rel:64, chr:64, type:'movie',   title:'Thunderbolts*', year:2025, plat:'theater'},
-{id:65,ph:6, rel:65, chr:65, type:'movie',   title:'Os Fantásticos: Primeiros Passos', year:2025, plat:'theater', note:'Anos 60 alternativo'},
-{id:66,ph:6, rel:66, chr:66, type:'series',  title:'Olhos de Wakanda', year:2025, plat:'disney',
+{id:64, ph:6, rel:65, chr:76, type:'movie',    title:'Thunderbolts*', year:2025, plat:'theater'},
+{id:65, ph:6, rel:66, chr:77, type:'movie',    title:'Os Fantásticos: Primeiros Passos', year:2025, plat:'theater', note:'Terra-828 — anos 60 alternativos'},
+{id:66, ph:6, rel:67, chr:1,  type:'animated', title:'Olhos de Wakanda', year:2025, plat:'disney',
  note:'Antologia animada — história do vibranium',
  episodes: eps(['Warrior Falls','O Primeiro Ladrão de Vibranium','As Garras da Pantera','Erva em Forma de Coração'])},
-{id:67,ph:6, rel:67, chr:67, type:'series',  title:'Ironheart', year:2025, plat:'disney',
+{id:67, ph:6, rel:68, chr:62, type:'series',   title:'Coração de Ferro', year:2025, plat:'disney',
  episodes: epsN(6,'Episódio')},
-{id:68,ph:6, rel:68, chr:68, type:'animated',title:'Marvel Zombies', year:2025, plat:'disney',
+{id:68, ph:6, rel:69, chr:47, type:'animated', title:'Marvel Zombies', year:2025, plat:'disney',
+ note:'Universo alternativo', episodes: epsN(6,'Episódio')},
+{id:69, ph:6, rel:70, chr:78, type:'series',   title:'Wonder Man', year:2025, plat:'disney',
  episodes: epsN(6,'Episódio')},
-{id:69,ph:6, rel:69, chr:69, type:'series',  title:'Wonder Man', year:2025, plat:'disney',
- episodes: epsN(6,'Episódio')},
-{id:70,ph:6, rel:70, chr:70, type:'animated',title:'X-Men \'97 — Temporada 2', year:2026, plat:'disney',
+{id:70, ph:6, rel:71, chr:0,  type:'animated', title:'X-Men \'97 — Temporada 2', year:2026, plat:'disney',
  note:'Em breve', episodes: epsN(10,'Episódio')},
-{id:71,ph:6, rel:71, chr:71, type:'series',  title:'Demolidor: Renascido — Temp. 2', year:2026, plat:'disney',
+{id:71, ph:6, rel:72, chr:79, type:'series',   title:'Demolidor: Renascido — Temporada 2', year:2026, plat:'disney',
  note:'Em breve', episodes: epsN(9,'Episódio')},
-{id:72,ph:6, rel:72, chr:72, type:'series',  title:'O Justiceiro: Um Último Assassinato', year:2026, plat:'disney',
+{id:72, ph:6, rel:73, chr:80, type:'series',   title:'O Justiceiro: Um Último Assassinato', year:2026, plat:'disney',
  note:'Em breve', episodes: epsN(6,'Episódio')},
-{id:73,ph:6, rel:73, chr:73, type:'animated',title:'Seu Amigável Homem-Aranha (Temp. 2)', year:2026, plat:'disney',
+{id:73, ph:6, rel:74, chr:0,  type:'animated', title:'Seu Amigável Homem-Aranha (Temp. 2)', year:2026, plat:'disney',
  note:'Em breve', episodes: epsN(13,'Episódio')},
-{id:74,ph:6, rel:74, chr:74, type:'movie',   title:'Homem-Aranha: Brand New Day', year:2026, plat:'theater'},
-{id:75,ph:6, rel:75, chr:75, type:'movie',   title:'Vingadores: Doomsday', year:2026, plat:'theater', doomsday:true},
+{id:74, ph:6, rel:75, chr:81, type:'movie',    title:'Homem-Aranha: Brand New Day', year:2026, plat:'theater'},
+{id:75, ph:6, rel:89, chr:0,  type:'movie',    title:'Vingadores: Doomsday', year:2026, plat:'theater', doomsday:true},
 ];
+
+// ═══════════════════════════════════════════════════════
+//  PERFIS
+// ═══════════════════════════════════════════════════════
+const PROFILES = [
+  {id:'PH',  color:'#C0392B', emoji:'🔴'},
+  {id:'Bia', color:'#9B59B6', emoji:'💜'}
+];
+let currentProfile = localStorage.getItem('mcu_profile') || 'PH';
+function wKey(){ return 'mcu_w3_' + currentProfile; }
+function eKey(){ return 'mcu_e3_' + currentProfile; }
 
 // ═══════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════
-const WK = 'mcu_w3';   // watched items (movies/shorts)
-const EK = 'mcu_e3';   // watched episodes map { "id_ep": true }
-
-let watched = new Set(JSON.parse(localStorage.getItem(WK)||'[]'));
-let watchedEps = JSON.parse(localStorage.getItem(EK)||'{}');
-let viewMode = 'phase';
+let watched    = new Set(JSON.parse(localStorage.getItem(wKey())||'[]'));
+let watchedEps = JSON.parse(localStorage.getItem(eKey())||'{}');
+let viewMode   = 'phase';
 let activeType = 'all';
-let activePhase = 'all';
-let searchQ = '';
-let hideWatched = false;
-let expanded = new Set(); // series with open episode list
+let activePhase= 'all';
+let searchQ    = '';
+let hideWatched= false;
+let expanded   = new Set();
 
-function saveW(){ localStorage.setItem(WK, JSON.stringify([...watched])); }
-function saveE(){ localStorage.setItem(EK, JSON.stringify(watchedEps)); }
+function saveW(){ localStorage.setItem(wKey(), JSON.stringify([...watched])); }
+function saveE(){ localStorage.setItem(eKey(), JSON.stringify(watchedEps)); }
+
+function switchProfile(id){
+  currentProfile = id;
+  localStorage.setItem('mcu_profile', id);
+  watched    = new Set(JSON.parse(localStorage.getItem(wKey())||'[]'));
+  watchedEps = JSON.parse(localStorage.getItem(eKey())||'{}');
+  expanded.clear();
+  // Update UI
+  document.querySelectorAll('.profile-btn').forEach(b=>{
+    const active = b.dataset.profile === id;
+    b.classList.toggle('active', active);
+    b.style.boxShadow = active ? '0 0 0 3px #fff' : 'none';
+    b.style.transform = active ? 'scale(1.12)' : 'scale(1)';
+  });
+  const prof = PROFILES.find(p=>p.id===id);
+  const el = document.getElementById('profile-active-label');
+  if(el && prof) el.textContent = prof.emoji + ' ' + id;
+  render(); updateStats();
+}
 
 // ═══════════════════════════════════════════════════════
 //  COUNTDOWN
@@ -472,6 +556,7 @@ function updateStats(){
   document.getElementById('s-watched').textContent = w;
   document.getElementById('s-pct').textContent = pct+'%';
   document.getElementById('s-fill').style.width = pct+'%';
+  if(typeof updateProfileCompare === 'function') updateProfileCompare();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -553,7 +638,7 @@ function render(){
   empty.classList.remove('show');
 
   if(viewMode==='chrono'){
-    const sorted = [...items].sort((a,b)=>a.chr-b.chr);
+    const sorted = [...items].filter(i=>i.chr>0).sort((a,b)=>a.chr-b.chr);
     const wc = sorted.filter(i=>isItemWatched(i)).length;
     cont.innerHTML = `<div class="phase-section chrono-header">
       <div class="phase-header"><h2>Ordem Cronológica in-Universe</h2><span class="ph-count">${wc}/${sorted.length} concluídos</span></div>
@@ -651,13 +736,43 @@ document.getElementById('hide-btn').addEventListener('click',e=>{
 });
 
 document.getElementById('reset-btn').addEventListener('click',()=>{
-  if(confirm('Resetar todo o progresso?')){
+  if(confirm(`Resetar o progresso do perfil ${currentProfile}?`)){
     watched.clear(); watchedEps={}; saveW(); saveE(); render(); updateStats();
   }
 });
 
+// Perfis — botões
+document.querySelectorAll('.profile-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>switchProfile(btn.dataset.profile));
+});
+
+// Comparação de progresso entre perfis
+function updateProfileCompare(){
+  const el = document.getElementById('profile-progress-compare');
+  if(!el) return;
+  const total = MCU.length;
+  const totalEps = MCU.reduce((a,m)=>a+(m.episodes?m.episodes.length:0),0);
+  const items = PROFILES.map(p=>{
+    const ws = new Set(JSON.parse(localStorage.getItem('mcu_w3_'+p.id)||'[]'));
+    const we = JSON.parse(localStorage.getItem('mcu_e3_'+p.id)||'{}');
+    const wMovies = MCU.filter(m=>{
+      if(m.episodes) return m.episodes.length>0 && m.episodes.filter(e=>we[m.id+'_'+e.n]).length===m.episodes.length;
+      return ws.has(m.id);
+    }).length;
+    const wEps = MCU.reduce((a,m)=>a+(m.episodes?m.episodes.filter(e=>we[m.id+'_'+e.n]).length:0),0);
+    const pct = Math.round(((wMovies + wEps) / (total + totalEps)) * 100);
+    return `<div class="profile-progress-item">
+      <div class="profile-progress-dot" style="background:${p.color}"></div>
+      <span style="color:${p.color};font-weight:700">${p.id}</span>
+      <span>${pct}%</span>
+    </div>`;
+  });
+  el.innerHTML = items.join('');
+}
+
 // ── INIT ──
-updateStats(); render();
+switchProfile(currentProfile);
+updateProfileCompare();
 </script>
 </body>
 </html>
