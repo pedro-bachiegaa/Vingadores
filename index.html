@@ -213,12 +213,47 @@
 
   .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); display: none; }
   .empty-state.show { display: block; }
+  /* ── FIREBASE AUTH BAR ── */
+  .fb-area { display:flex; align-items:center; gap:8px; margin-left:auto; flex-wrap:wrap; }
+  .fb-btn   { font-size:11px; padding:5px 10px; }
+  #fb-sync-dot { font-size:15px; cursor:default; user-select:none; }
+  #fb-user-label {
+    font-size:11px; color:#aaa; max-width:160px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  /* ── FIREBASE MODAL ── */
+  .fb-modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.88); z-index:9999;
+    align-items:center; justify-content:center;
+  }
+  .fb-modal-overlay.open { display:flex; }
+  .fb-modal-box {
+    background:#1a1a1a; border:1px solid #444;
+    border-radius:14px; padding:28px; max-width:540px; width:90%;
+  }
+  .fb-modal-box h3 { color:#fff; margin-bottom:10px; font-size:18px; }
+  .fb-modal-box p  { color:#aaa; font-size:12px; margin-bottom:10px; line-height:1.55; }
+  .fb-modal-box a  { color:#5DADE2; }
+  .fb-modal-box textarea {
+    width:100%; background:#111; border:1px solid #444;
+    color:#d0d0d0; font-size:11px; font-family:monospace;
+    border-radius:8px; padding:10px; resize:vertical; min-height:155px; outline:none;
+  }
+  .fb-modal-steps { background:#111; border-radius:8px; padding:12px 14px; margin:10px 0; font-size:12px; color:#ccc; line-height:1.8; }
+  .fb-modal-steps b { color:#F1C40F; }
+  .fb-modal-btns  { display:flex; gap:8px; margin-top:12px; justify-content:flex-end; }
+
 
   @media(max-width:600px) {
     header,.stats-bar,.controls,.main { padding-left:14px; padding-right:14px; }
     .cards-grid { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
   }
 </style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -260,6 +295,13 @@
   <button class="profile-btn" data-profile="PH" style="background:#C0392B" title="Perfil PH">PH</button>
   <span id="profile-active-label">PH</span>
   <div class="profile-progress" id="profile-progress-compare"></div>
+  <div class="fb-area">
+    <span id="fb-sync-dot" title="Não conectado">⚪</span>
+    <span id="fb-user-label" style="display:none"></span>
+    <button id="fb-login-btn"  class="btn fb-btn">☁️ Entrar com Google</button>
+    <button id="fb-logout-btn" class="btn fb-btn" style="display:none">Sair</button>
+    <button id="fb-setup-btn"  class="btn fb-btn" title="Configurar Firebase">⚙️ Config</button>
+  </div>
 </div>
 
 <div class="controls">
@@ -295,6 +337,27 @@
 
 <div class="main" id="main"></div>
 <div class="empty-state" id="empty">🔍<p style="margin-top:10px">Nenhum resultado.</p></div>
+
+<!-- Firebase Config Modal -->
+<div id="fb-modal" class="fb-modal-overlay">
+  <div class="fb-modal-box">
+    <h3>☁️ Configurar Firebase</h3>
+    <p>Para sincronizar entre celular e computador você precisa de um projeto Firebase gratuito.</p>
+    <div class="fb-modal-steps">
+      <b>1.</b> Acesse <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
+      <b>2.</b> Crie um projeto → Adicione um app Web (ícone &lt;/&gt;)<br>
+      <b>3.</b> Copie o objeto <code>firebaseConfig</code> e cole abaixo<br>
+      <b>4.</b> No console: ative <b>Authentication → Google</b> e <b>Firestore Database</b><br>
+      <b>5.</b> Em Firestore → Rules: <code>allow read, write: if request.auth != null;</code>
+    </div>
+    <p>Cole o <code>firebaseConfig</code> aqui (pode ser o objeto JS ou JSON):</p>
+    <textarea id="fb-config-text" placeholder='{&#10;  "apiKey": "...",&#10;  "authDomain": "...",&#10;  "projectId": "...",&#10;  ...&#10;}'></textarea>
+    <div class="fb-modal-btns">
+      <button id="fb-config-cancel" class="btn">Cancelar</button>
+      <button id="fb-config-save" class="btn" style="background:var(--red);border-color:var(--red);color:#fff">Salvar e Conectar</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ═══════════════════════════════════════════════════════
@@ -484,8 +547,97 @@ let searchQ    = '';
 let hideWatched= false;
 let expanded   = new Set();
 
-function saveW(){ localStorage.setItem(wKey(), JSON.stringify([...watched])); }
-function saveE(){ localStorage.setItem(eKey(), JSON.stringify(watchedEps)); }
+// ═══════════════════════════════════════════════════════
+//  FIREBASE SYNC
+// ═══════════════════════════════════════════════════════
+let db = null, fbAuth = null, fbUser = null, fbUnsub = null, fbSaving = false;
+let fbDebounceTimer = null;
+
+function fbSetStatus(icon, title){
+  const dot = document.getElementById('fb-sync-dot');
+  if(dot){ dot.textContent=icon; dot.title=title; }
+}
+
+function saveToFirestore(){
+  if(!db || !fbUser) return;
+  clearTimeout(fbDebounceTimer);
+  fbDebounceTimer = setTimeout(async ()=>{
+    fbSaving = true;
+    fbSetStatus('🟡','Salvando...');
+    try {
+      await db.collection('mcu_users').doc(fbUser.uid).set({
+        watched:    [...watched],
+        watchedEps: watchedEps,
+        updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
+      });
+      fbSetStatus('🟢','Sincronizado ✓');
+    } catch(e){
+      fbSetStatus('🔴','Erro ao salvar: '+e.message);
+    } finally {
+      fbSaving = false;
+    }
+  }, 800);
+}
+
+function startFbSync(){
+  if(fbUnsub){ fbUnsub(); fbUnsub=null; }
+  const ref = db.collection('mcu_users').doc(fbUser.uid);
+  fbSetStatus('🟡','Carregando dados da nuvem...');
+  fbUnsub = ref.onSnapshot(snap=>{
+    if(snap.exists && !fbSaving){
+      const data = snap.data();
+      watched    = new Set(data.watched||[]);
+      watchedEps = data.watchedEps||{};
+      localStorage.setItem(wKey(), JSON.stringify([...watched]));
+      localStorage.setItem(eKey(), JSON.stringify(watchedEps));
+      render(); updateStats();
+    }
+    fbSetStatus('🟢','Sincronizado com a nuvem ✓');
+  }, err=>{
+    fbSetStatus('🔴','Erro: '+err.message);
+  });
+}
+
+function initFirebase(cfg){
+  try {
+    if(firebase.apps.length>0) firebase.apps.forEach(a=>a.delete());
+    firebase.initializeApp(cfg);
+    db      = firebase.firestore();
+    fbAuth  = firebase.auth();
+    fbAuth.onAuthStateChanged(user=>{
+      fbUser = user;
+      const loginBtn  = document.getElementById('fb-login-btn');
+      const logoutBtn = document.getElementById('fb-logout-btn');
+      const userLabel = document.getElementById('fb-user-label');
+      if(user){
+        if(loginBtn)  loginBtn.style.display='none';
+        if(logoutBtn) logoutBtn.style.display='';
+        if(userLabel){ userLabel.textContent=user.displayName||user.email; userLabel.style.display=''; }
+        startFbSync();
+      } else {
+        if(loginBtn)  loginBtn.style.display='';
+        if(logoutBtn) logoutBtn.style.display='none';
+        if(userLabel) userLabel.style.display='none';
+        fbSetStatus('⚪','Não conectado — dados locais');
+        if(fbUnsub){ fbUnsub(); fbUnsub=null; }
+      }
+    });
+    fbSetStatus('🟡','Conectando...');
+    return true;
+  } catch(e){
+    fbSetStatus('🔴','Erro de config: '+e.message);
+    return false;
+  }
+}
+
+function saveW(){
+  localStorage.setItem(wKey(), JSON.stringify([...watched]));
+  if(db&&fbUser) saveToFirestore();
+}
+function saveE(){
+  localStorage.setItem(eKey(), JSON.stringify(watchedEps));
+  if(db&&fbUser) saveToFirestore();
+}
 
 function switchProfile(id){
   currentProfile = id;
@@ -767,6 +919,37 @@ function updateProfileCompare(){
   });
   el.innerHTML = items.join('');
 }
+
+// ── FIREBASE WIRING ──
+document.getElementById('fb-setup-btn').addEventListener('click',()=>{
+  const s = localStorage.getItem('mcu_fb_config');
+  if(s) document.getElementById('fb-config-text').value = s;
+  document.getElementById('fb-modal').classList.add('open');
+});
+document.getElementById('fb-config-cancel').addEventListener('click',()=>{
+  document.getElementById('fb-modal').classList.remove('open');
+});
+document.getElementById('fb-config-save').addEventListener('click',()=>{
+  const raw = document.getElementById('fb-config-text').value.trim();
+  try {
+    const cfg = (new Function('return ('+raw+')'))();
+    localStorage.setItem('mcu_fb_config', JSON.stringify(cfg));
+    document.getElementById('fb-modal').classList.remove('open');
+    initFirebase(cfg);
+  } catch(e){ alert('Config inválida: '+e.message); }
+});
+document.getElementById('fb-login-btn').addEventListener('click',()=>{
+  if(!fbAuth){ alert('Configure o Firebase primeiro (botão ⚙️ Config)'); return; }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  fbAuth.signInWithPopup(provider).catch(e=>alert('Erro ao entrar: '+e.message));
+});
+document.getElementById('fb-logout-btn').addEventListener('click',()=>{
+  if(fbAuth) fbAuth.signOut();
+});
+
+// Auto-init se config já estiver salva
+const _savedCfg = localStorage.getItem('mcu_fb_config');
+if(_savedCfg){ try{ initFirebase(JSON.parse(_savedCfg)); }catch(e){ console.error(e); } }
 
 // ── INIT ──
 switchProfile(currentProfile);
