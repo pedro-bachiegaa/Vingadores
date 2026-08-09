@@ -584,15 +584,35 @@ function startFbSync(){
   const ref = db.collection('mcu_users').doc(fbUser.uid);
   fbSetStatus('🟡','Carregando dados da nuvem...');
   fbUnsub = ref.onSnapshot(snap=>{
-    if(snap.exists && !fbSaving){
-      const data = snap.data();
-      watched    = new Set(data.watched||[]);
-      watchedEps = data.watchedEps||{};
-      localStorage.setItem(wKey(), JSON.stringify([...watched]));
-      localStorage.setItem(eKey(), JSON.stringify(watchedEps));
-      render(); updateStats();
+    if(!fbSaving){
+      if(snap.exists){
+        // Dados existem na nuvem — carregar
+        const data = snap.data();
+        watched    = new Set(data.watched||[]);
+        watchedEps = data.watchedEps||{};
+        localStorage.setItem(wKey(), JSON.stringify([...watched]));
+        localStorage.setItem(eKey(), JSON.stringify(watchedEps));
+        render(); updateStats();
+        fbSetStatus('🟢','Sincronizado com a nuvem ✓');
+      } else {
+        // Sem dados na nuvem — fazer upload do localStorage
+        const localW  = JSON.parse(localStorage.getItem(wKey())||'[]');
+        const localE  = JSON.parse(localStorage.getItem(eKey())||'{}');
+        const hasData = localW.length>0 || Object.keys(localE).length>0;
+        if(hasData){
+          fbSetStatus('🟡','Enviando dados locais para a nuvem...');
+          ref.set({
+            watched:    localW,
+            watchedEps: localE,
+            updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
+          }).then(()=>{
+            fbSetStatus('🟢','Dados locais enviados para a nuvem ✓');
+          }).catch(e=>fbSetStatus('🔴','Erro ao enviar: '+e.message));
+        } else {
+          fbSetStatus('🟢','Conectado — nenhum dado ainda');
+        }
+      }
     }
-    fbSetStatus('🟢','Sincronizado com a nuvem ✓');
   }, err=>{
     fbSetStatus('🔴','Erro: '+err.message);
   });
