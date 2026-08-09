@@ -309,8 +309,8 @@
   <input type="text" class="search-input" id="search" placeholder="🔍 Buscar título...">
   <div class="divider"></div>
   <div class="filter-group" id="view-btns">
-    <button class="btn active" data-view="phase">📂 Por Fase</button>
-    <button class="btn" data-view="chrono">🕐 Cronológico (in-universe)</button>
+    <button class="btn" data-view="phase">📂 Por Fase</button>
+    <button class="btn active" data-view="chrono">🕐 Cronológico (in-universe)</button>
   </div>
   <div class="divider"></div>
   <div class="filter-group" id="type-btns">
@@ -323,7 +323,7 @@
   </div>
   <div class="divider"></div>
   <div class="filter-group" id="phase-btns">
-    <button class="btn active" data-phase="all">Todas as Fases</button>
+    <button class="btn active" data-phase="all" disabled>Todas as Fases</button>
     <button class="btn p1" data-phase="1">Fase 1</button>
     <button class="btn p2" data-phase="2">Fase 2</button>
     <button class="btn p3" data-phase="3">Fase 3</button>
@@ -541,7 +541,7 @@ function eKey(){ return 'mcu_e3_' + currentProfile; }
 // ═══════════════════════════════════════════════════════
 let watched    = new Set(JSON.parse(localStorage.getItem(wKey())||'[]'));
 let watchedEps = JSON.parse(localStorage.getItem(eKey())||'{}');
-let viewMode   = 'phase';
+let viewMode   = 'chrono';
 let activeType = 'all';
 let activePhase= 'all';
 let searchQ    = '';
