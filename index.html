@@ -293,6 +293,7 @@
 <div class="profile-bar">
   <span class="profile-bar-label">Perfil:</span>
   <button class="profile-btn" data-profile="PH" style="background:#C0392B" title="Perfil PH">PH</button>
+  <button class="profile-btn" data-profile="Bia" style="background:#9B59B6" title="Perfil Bia">Bia</button>
   <span id="profile-active-label">PH</span>
   <div class="profile-progress" id="profile-progress-compare"></div>
   <div class="fb-area">
@@ -530,7 +531,8 @@ const MCU = [
 //  PERFIS
 // ═══════════════════════════════════════════════════════
 const PROFILES = [
-  {id:'PH', color:'#C0392B', emoji:'🔴'}
+  {id:'PH', color:'#C0392B', emoji:'🔴'},
+  {id:'Bia', color:'#9B59B6', emoji:'🟣'}
 ];
 let currentProfile = localStorage.getItem('mcu_profile') || 'PH';
 function wKey(){ return 'mcu_w3_' + currentProfile; }
