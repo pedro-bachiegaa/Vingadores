@@ -177,6 +177,7 @@
   .badge-short   { background:rgba(241,196,15,0.2);  color:#F1C40F; }
   .badge-special { background:rgba(46,204,113,0.2);  color:#2ECC71; }
   .badge-animated{ background:rgba(155,89,182,0.2);  color:#BB8FCE; }
+  .badge-universe{ background:rgba(155,89,182,0.25); color:#D2A8FF; border:1px solid rgba(155,89,182,0.5); font-style:italic; }
 
   .card-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; padding-right: 22px; }
   .card-meta { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
@@ -374,7 +375,7 @@
     <button class="btn" data-type="short">⚡ Curtas <span class="btn-count" id="count-short"></span></button>
     <button class="btn" data-type="special">✨ Especiais <span class="btn-count" id="count-special"></span></button>
     <button class="btn" data-type="animated">✏️ Animados <span class="btn-count" id="count-animated"></span></button>
-    <button class="btn" data-type="irrelevant" id="btn-irrelevant">🙈 Não relevante</button>
+    <button class="btn" data-type="irrelevant" id="btn-irrelevant">🙈 Não quero assistir</button>
   </div>
   <div class="divider"></div>
   <div class="filter-group" id="phase-btns">
@@ -559,7 +560,7 @@ const MCU = [
 {id:63, ph:6, rel:64, chr:74, type:'series',   title:'Demolidor: Renascido — Temporada 1', year:2025, period:'2026', plat:'disney',
  episodes: eps(['Meia Hora do Céu','Ótica','A Palma da Sua Mão','Sic Semper Sistema','Com Juros','Força Excessiva','Arte pela Arte','Ilha da Alegria','Direto para o Inferno'])},
 {id:64, ph:6, rel:65, chr:76, type:'movie',    title:'Thunderbolts*', year:2025, period:'2027', plat:'theater'},
-{id:65, ph:6, rel:66, chr:77, type:'movie',    title:'Os Fantásticos: Primeiros Passos', year:2025, period:'1964 — Terra-828', plat:'theater', note:'Terra-828 — anos 60 alternativos'},
+{id:65, ph:6, rel:66, chr:77, type:'movie',    title:'Os Fantásticos: Primeiros Passos', year:2025, period:'1964 — Terra-828', plat:'theater', universe:'🌐 Terra-828', note:'Anos 60 alternativos'},
 {id:66, ph:6, rel:67, chr:1,  type:'animated', title:'Olhos de Wakanda', year:2025, period:'1260 a.C. – 1896', plat:'disney',
  note:'Antologia animada — história do vibranium',
  episodes: eps(['Na Cova do Leão','Lendas e Mentiras','Achados e Perdidos','A Última Pantera'])},
@@ -578,7 +579,22 @@ const MCU = [
 {id:73, ph:6, rel:74, chr:0,  type:'animated', title:'Seu Amigável Homem-Aranha (Temp. 2)', year:2026, plat:'disney',
  note:'Em breve', episodes: epsN(13,'Episódio')},
 {id:74, ph:6, rel:75, chr:81, type:'movie',    title:'Homem-Aranha: Brand New Day', year:2026, period:'2028', plat:'theater'},
-{id:75, ph:6, rel:89, chr:0,  type:'movie',    title:'Vingadores: Doomsday', year:2026, plat:'theater', doomsday:true},
+
+// ── UNIVERSO X-MEN (FOX) — Terra-10005, revelado como preparação para o Doomsday ──
+{id:100, ph:6, rel:76, chr:82, type:'movie',    title:'X-Men', year:2000, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+{id:101, ph:6, rel:77, chr:83, type:'movie',    title:'X-Men 2', year:2003, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+{id:102, ph:6, rel:78, chr:84, type:'movie',    title:'X-Men: O Confronto Final', year:2006, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+{id:103, ph:6, rel:79, chr:85, type:'movie',    title:'X-Men Origens: Wolverine', year:2009, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+{id:104, ph:6, rel:80, chr:86, type:'movie',    title:'X-Men: Primeira Classe', year:2011, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+{id:105, ph:6, rel:81, chr:87, type:'movie',    title:'Wolverine Imortal', year:2013, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+{id:106, ph:6, rel:82, chr:88, type:'movie',    title:'X-Men: Dias de um Futuro Esquecido', year:2014, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)',
+ note:'Reescreve parte da linha do tempo do grupo'},
+{id:107, ph:6, rel:83, chr:89, type:'movie',    title:'X-Men: Apocalipse', year:2016, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+{id:108, ph:6, rel:84, chr:90, type:'movie',    title:'Logan', year:2017, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)',
+ note:'Futuro alternativo — final da linha clássica de Wolverine'},
+{id:109, ph:6, rel:85, chr:91, type:'movie',    title:'X-Men: Fênix Negra', year:2019, period:'Terra-10005', plat:'theater', universe:'🅧 Universo X-Men (Fox)'},
+
+{id:75, ph:6, rel:89, chr:92, type:'movie',    title:'Vingadores: Doomsday', year:2026, plat:'theater', doomsday:true, note:'X-Men e Avengers se encontram pela primeira vez'},
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -627,6 +643,7 @@ function saveToFirestore(){
       await db.collection('mcu_users').doc(fbUser.uid).set({
         watched:    [...watched],
         watchedEps: watchedEps,
+        irrelevant: [...irrelevant],
         updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
       });
       fbSetStatus('🟢','Sincronizado ✓');
@@ -649,20 +666,24 @@ function startFbSync(){
         const data = snap.data();
         watched    = new Set(data.watched||[]);
         watchedEps = data.watchedEps||{};
+        irrelevant = new Set(data.irrelevant||[]);
         localStorage.setItem(wKey(), JSON.stringify([...watched]));
         localStorage.setItem(eKey(), JSON.stringify(watchedEps));
+        localStorage.setItem(iKey(), JSON.stringify([...irrelevant]));
         render(); updateStats();
         fbSetStatus('🟢','Sincronizado com a nuvem ✓');
       } else {
         // Sem dados na nuvem — fazer upload do localStorage
         const localW  = JSON.parse(localStorage.getItem(wKey())||'[]');
         const localE  = JSON.parse(localStorage.getItem(eKey())||'{}');
-        const hasData = localW.length>0 || Object.keys(localE).length>0;
+        const localI  = JSON.parse(localStorage.getItem(iKey())||'[]');
+        const hasData = localW.length>0 || Object.keys(localE).length>0 || localI.length>0;
         if(hasData){
           fbSetStatus('🟡','Enviando dados locais para a nuvem...');
           ref.set({
             watched:    localW,
             watchedEps: localE,
+            irrelevant: localI,
             updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
           }).then(()=>{
             fbSetStatus('🟢','Dados locais enviados para a nuvem ✓');
@@ -721,6 +742,7 @@ function saveE(){
 }
 function saveI(){
   localStorage.setItem(iKey(), JSON.stringify([...irrelevant]));
+  if(db&&fbUser) saveToFirestore();
 }
 
 function switchProfile(id){
@@ -835,7 +857,7 @@ function filtered(){
     });
   }
   return MCU.filter(item=>{
-    if(irrelevant.has(item.id)) return false; // itens não relevantes somem de todas as outras listas
+    if(irrelevant.has(item.id)) return false; // itens 'não quero assistir' somem de todas as outras listas
     if(activePhase!=='all' && item.ph!==+activePhase) return false;
     if(activeType!=='all' && item.type!==activeType) return false;
     if(searchQ && !item.title.toLowerCase().includes(searchQ.toLowerCase())) return false;
@@ -889,8 +911,9 @@ function cardHTML(item){
   return `<div class="card${isW?' watched':''}${item.doomsday?' doomsday':''}${hasSeries&&isExp?' series-expanded':''}" data-id="${item.id}">
     <span class="order-num">#${orderNum}</span>
     <span class="checkmark">✓</span>
-    <button class="irr-toggle-btn" data-irr-id="${item.id}" title="${isIrr?'Marcar como relevante novamente':'Marcar como não relevante'}">${isIrr?'👁️':'🙈'}</button>
+    <button class="irr-toggle-btn" data-irr-id="${item.id}" title="${isIrr?'Mover de volta para a linha do tempo':'Não quero assistir'}">${isIrr?'👁️':'🙈'}</button>
     ${typeBadge[item.type]||''}
+    ${item.universe?`<span class="card-type-badge badge-universe">${item.universe}</span>`:''}
     <div class="card-title">${item.title}${item.doomsday?' 💥':''}</div>
     <div class="card-meta">
       ${platBadge[item.plat]||''}
@@ -913,7 +936,7 @@ function render(){
 
   if(activeType==='irrelevant'){
     cont.innerHTML = `<div class="phase-section">
-      <div class="phase-header"><h2>🙈 Não relevante</h2><span class="ph-count">${items.length} ${items.length===1?'item oculto':'itens ocultos'}</span></div>
+      <div class="phase-header"><h2>🙈 Não quero assistir</h2><span class="ph-count">${items.length} ${items.length===1?'item oculto':'itens ocultos'}</span></div>
       <div class="cards-grid">${items.map(cardHTML).join('')}</div></div>`;
   } else if(viewMode==='chrono'){
     const sorted = [...items].filter(i=>i.chr>0).sort((a,b)=>a.chr-b.chr);
