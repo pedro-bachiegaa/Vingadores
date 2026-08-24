@@ -57,6 +57,7 @@
   .stat { display: flex; flex-direction: column; align-items: center; }
   .stat .num { font-size: 22px; font-weight: 700; color: var(--gold); }
   .stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .sub-count { font-size: 10px; color: var(--gold); font-weight: 700; margin-top: 2px; opacity: 0.9; }
   .progress-wrap { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 5px; }
   .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
   .progress-bar-bg { background: #2c2c2c; border-radius: 8px; height: 9px; overflow: hidden; }
@@ -331,10 +332,10 @@
 
 <div class="stats-bar">
   <div class="stat"><div class="num" id="s-total">0</div><div class="lbl">Total</div></div>
-  <div class="stat"><div class="num" id="s-movies">0</div><div class="lbl">Filmes</div></div>
-  <div class="stat"><div class="num" id="s-series">0</div><div class="lbl">Séries</div></div>
-  <div class="stat"><div class="num" id="s-shorts">0</div><div class="lbl">Curtas</div></div>
-  <div class="stat"><div class="num" id="s-eps">0</div><div class="lbl">Episódios</div></div>
+  <div class="stat"><div class="num" id="s-movies">0</div><div class="lbl">Filmes</div><div class="sub-count" id="sc-movies"></div></div>
+  <div class="stat"><div class="num" id="s-series">0</div><div class="lbl">Séries</div><div class="sub-count" id="sc-series"></div></div>
+  <div class="stat"><div class="num" id="s-shorts">0</div><div class="lbl">Curtas</div><div class="sub-count" id="sc-shorts"></div></div>
+  <div class="stat"><div class="num" id="s-eps">0</div><div class="lbl">Episódios</div><div class="sub-count" id="sc-eps"></div></div>
   <div class="stat"><div class="num" id="s-watched">0</div><div class="lbl">Assistidos</div></div>
   <div class="progress-wrap">
     <div class="progress-label"><span>Progresso geral</span><span id="s-pct">0%</span></div>
@@ -790,6 +791,15 @@ function updateStats(){
   document.getElementById('s-watched').textContent = w;
   document.getElementById('s-pct').textContent = pct+'%';
   document.getElementById('s-fill').style.width = pct+'%';
+
+  // Sub-contadores "assistidos/total" na barra de estatísticas do topo
+  const wMovies = MCU.filter(m=>m.type==='movie' && isItemWatched(m)).length;
+  const wSeries = MCU.filter(m=>(m.type==='series'||m.type==='special'||m.type==='animated') && isItemWatched(m)).length;
+  const wShorts = MCU.filter(m=>m.type==='short' && isItemWatched(m)).length;
+  document.getElementById('sc-movies').textContent = movies ? `${wMovies}/${movies}` : '';
+  document.getElementById('sc-series').textContent = series ? `${wSeries}/${series}` : '';
+  document.getElementById('sc-shorts').textContent = shorts ? `${wShorts}/${shorts}` : '';
+  document.getElementById('sc-eps').textContent = eps ? `${wEps}/${eps}` : '';
 
   // Contagem "assistidos/total" por categoria, ignorando itens não relevantes
   const visible = MCU.filter(item=>!irrelevant.has(item.id));
