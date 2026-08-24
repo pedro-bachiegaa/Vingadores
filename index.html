@@ -31,9 +31,16 @@
     justify-content: space-between; flex-wrap: wrap; gap: 14px;
     position: sticky; top: 0; z-index: 100;
   }
-  .logo-area h1 { font-size: 26px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+  .logo-area h1 { font-size: 26px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.5s ease; }
   .logo-area h1 span { color: var(--gold); }
   .logo-area p { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  #hero-title { color: #E8EDE8; }
+  #hero-title .word-red    { color: #C0392B; }
+  #hero-title .word-yellow { color: #F1C40F; }
+  #hero-title .word-green  { color: #4A7C3F; }
+  #hero-title .word-doomgold { color: #C9A84C; }
+  #hero-title.fade-out { opacity: 0; }
 
   .countdown-box {
     background: linear-gradient(135deg, var(--dark-red), var(--red));
@@ -313,7 +320,7 @@
 
 <header>
   <div class="logo-area">
-    <h1>MCU <span>●</span> Dashboard</h1>
+    <h1 id="hero-title" class="hero-stark">Eu sou o <span class="word-red">Homem</span> de <span class="word-yellow">Ferro</span></h1>
     <p>Todos os filmes, séries e curtas · Rumo ao Doomsday</p>
   </div>
   <div class="countdown-box">
@@ -1024,6 +1031,27 @@ document.getElementById('view-btns').addEventListener('click',e=>{
   phaseBtns.forEach(b=>{ b.disabled=viewMode==='chrono'; });
   render();
 });
+
+// ═══════════════════════════════════════════════════════
+//  HERO TITLE — alterna entre "Homem de Ferro" e "Destino"
+// ═══════════════════════════════════════════════════════
+(function(){
+  const el = document.getElementById('hero-title');
+  if(!el) return;
+  const phrases = [
+    () => `Eu sou o <span class="word-red">Homem</span> de <span class="word-yellow">Ferro</span>`,
+    () => `Eu sou <span class="word-green">Des</span><span class="word-doomgold">tino</span>`,
+  ];
+  let i = 0;
+  setInterval(()=>{
+    el.classList.add('fade-out');
+    setTimeout(()=>{
+      i = (i+1) % phrases.length;
+      el.innerHTML = phrases[i]();
+      el.classList.remove('fade-out');
+    }, 500);
+  }, 3500);
+})();
 
 document.getElementById('type-btns').addEventListener('click',e=>{
   const btn=e.target.closest('[data-type]'); if(!btn) return;
