@@ -82,6 +82,12 @@
   .btn:hover { border-color: var(--red); color: var(--text); }
   .btn.active { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; }
   .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-count {
+    font-size: 10px; font-weight: 700; opacity: 0.75;
+    background: rgba(255,255,255,0.12); padding: 1px 6px; border-radius: 8px;
+    margin-left: 4px;
+  }
+  .btn.active .btn-count { background: rgba(255,255,255,0.25); opacity: 1; }
   .btn.p1.active{background:var(--p1);border-color:var(--p1);}
   .btn.p2.active{background:var(--p2);border-color:var(--p2);}
   .btn.p3.active{background:var(--p3);border-color:var(--p3);}
@@ -361,12 +367,12 @@
   </div>
   <div class="divider"></div>
   <div class="filter-group" id="type-btns">
-    <button class="btn active" data-type="all">Tudo</button>
-    <button class="btn" data-type="movie">🎬 Filmes</button>
-    <button class="btn" data-type="series">📺 Séries</button>
-    <button class="btn" data-type="short">⚡ Curtas</button>
-    <button class="btn" data-type="special">✨ Especiais</button>
-    <button class="btn" data-type="animated">✏️ Animados</button>
+    <button class="btn active" data-type="all">Tudo <span class="btn-count" id="count-all"></span></button>
+    <button class="btn" data-type="movie">🎬 Filmes <span class="btn-count" id="count-movie"></span></button>
+    <button class="btn" data-type="series">📺 Séries <span class="btn-count" id="count-series"></span></button>
+    <button class="btn" data-type="short">⚡ Curtas <span class="btn-count" id="count-short"></span></button>
+    <button class="btn" data-type="special">✨ Especiais <span class="btn-count" id="count-special"></span></button>
+    <button class="btn" data-type="animated">✏️ Animados <span class="btn-count" id="count-animated"></span></button>
     <button class="btn" data-type="irrelevant" id="btn-irrelevant">🙈 Não relevante</button>
   </div>
   <div class="divider"></div>
@@ -784,6 +790,25 @@ function updateStats(){
   document.getElementById('s-watched').textContent = w;
   document.getElementById('s-pct').textContent = pct+'%';
   document.getElementById('s-fill').style.width = pct+'%';
+
+  // Contagem "assistidos/total" por categoria, ignorando itens não relevantes
+  const visible = MCU.filter(item=>!irrelevant.has(item.id));
+  const byType = {
+    all: visible,
+    movie: visible.filter(m=>m.type==='movie'),
+    series: visible.filter(m=>m.type==='series'),
+    short: visible.filter(m=>m.type==='short'),
+    special: visible.filter(m=>m.type==='special'),
+    animated: visible.filter(m=>m.type==='animated'),
+  };
+  for(const key in byType){
+    const el = document.getElementById('count-'+key);
+    if(!el) continue;
+    const items = byType[key];
+    const watchedCount = items.filter(i=>isItemWatched(i)).length;
+    el.textContent = items.length ? `${watchedCount}/${items.length}` : '';
+  }
+
   if(typeof updateProfileCompare === 'function') updateProfileCompare();
 }
 
